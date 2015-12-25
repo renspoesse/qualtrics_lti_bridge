@@ -29,7 +29,8 @@ class ConsumerSecrets extends OAuthDataStore
      */
     private $consumers = array(
 
-        "Coursera_Rens_Test_AJASLGK!J$^19" => "87654##$%^&*UYTRh"
+        "Coursera_Rens_Test_AJASLGK!J$^19"   => "87654##$%^&*UYTRh",
+        "Coursera_Alexander_Test_JHGF&^%r44" => "098765432kjhgX"
     );
 
     /**
@@ -105,7 +106,7 @@ class ConsumerSecrets extends OAuthDataStore
          * time limit is a replay attack.
          *
          * Information taken from: http://hueniverse.com/2008/10/03/beginners-guide-to-oauth-part-iii-security-architecture/
-        */
+         */
 
         // Andy Smith's OAuth.php implements the timestamp check. The extra nonce check should be implemented here.
         // However, we need a database dependency to store all the nonces which might be too much for our use case.
