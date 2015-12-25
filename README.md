@@ -11,8 +11,8 @@ The main goal for developing this tool was to build a way by which Qualtrics sur
 in a Coursera course for the purpose of A/B testing. However, the tool has more general LTI use cases
 as can be read here:
 
-* [Coursera documentation for using LTI]https://tech.coursera.org/app-platform/lti
-* [General information about LTI]https://www.imsglobal.org/activity/learning-tools-interoperability
+* [Coursera documentation for using LTI](https://tech.coursera.org/app-platform/lti)
+* [General information about LTI](https://www.imsglobal.org/activity/learning-tools-interoperability)
 
 Another important goal of this project is to provide clear documentation and code comments to ensure
 usefulness of the tool for anyone interested in using Qualtrics with other platforms in educational scenarios.
