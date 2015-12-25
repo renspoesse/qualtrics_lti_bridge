@@ -2,6 +2,8 @@
 // Load up the Basic LTI Support code
 require_once 'lib/blti.php';
 
+require_once 'config.php'; // Settings.
+
 $context = new BLTI('moocs_are_great', false, false);
 if ( ! $context->valid ) {
     print "<p style=\"color:red\">Could not establish context: ".$context->message."<p>\n";
