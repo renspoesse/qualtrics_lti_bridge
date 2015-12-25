@@ -29,8 +29,8 @@ In our main use case those learning tools are Coursera and Qualtrics. Qualtrics 
 does not. So we want to integrate Qualtrics with Coursera. Contrarily however, Coursera supports LTI integration but
 Qualtrics does not (yet). This is where the Qualtrics LTI Bridge tool comes in. In LTI terms, our situation is as follows:
 
-Tool Consumer: Coursera (but can be anything that supports LTI)
-Tool Provider: Qualtrics LTI Bridge tool (this project) as a wrapper around Qualtrics
+* Tool Consumer: Coursera (but can be anything that supports LTI)
+* Tool Provider: Qualtrics LTI Bridge tool (this project) as a wrapper around Qualtrics
 
 When the Tool Consumer wants to make an LTI defined request to Qualtrics, it needs to address this tool that in turn
 addresses Qualtrics and returns a valid LTI response. The tool therefore needs to be accessible to the Tool Consumer,
