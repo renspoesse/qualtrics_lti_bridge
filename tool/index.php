@@ -1,22 +1,25 @@
 <?php
-// Load up the Basic LTI Support code
-require_once 'lib/blti.php';
 
-require_once 'config.php'; // Settings.
+/**
+ * This is the default entry point for the tool. It should be specified as the LTI endpoint for the Tool Consumer.
+ *
+ * TODO: supported parameters hier noteren.
+ */
 
+require_once "lib/blti.php";    // Basic LTI Support code
+require_once "config.php";      // Tool settings.
+
+/*
 $context = new BLTI('moocs_are_great', false, false);
 if ( ! $context->valid ) {
     print "<p style=\"color:red\">Could not establish context: ".$context->message."<p>\n";
     die();
 }
 
-
-
 $qualtrix_survey_id = $_GET['SID'];
 $user_token = $_POST['user_id']; // note: in Novoed this is an "anonymized" 320bit hash
 $survey_version = $_GET['version'];
 $link_label = $_GET['l'];
-
 
 $get_array = array(
     'SID' => $qualtrix_survey_id,
@@ -63,3 +66,4 @@ $redirect_url = 'https://anything.qualtrics.com/SE/';
     </script>
 </body>
 </html>
+*/

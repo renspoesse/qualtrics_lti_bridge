@@ -1,4 +1,4 @@
-This Qualtrics LTI Bridge tool was developed by Rens Poesse for the University of Amsterdam.
+This Qualtrics LTI Bridge tool was developed by Rens Poesse at the University of Amsterdam.
 
 It has been based on qualtrics_lti_bridge by Simon Wiles at Stanford University,
 which is accessible at the link [tiny.cc/qualtricslti](http://tiny.cc/qualtricslti).

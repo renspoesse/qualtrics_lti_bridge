@@ -17,8 +17,11 @@ class Config
      */
     protected static $config = array(
 
-        "qualtricsUrl"      => "https://nlpsych.qualtrics.com", // The base url for Qualtrics surveys to address.
-        "allowUrlOverrides" => true                             // Whether or not Tool Consumers are allowed to override qualtricsUrl by specifying a custom value.
+        "debug"             => true,                                // Enables or disables debug information. Should be disabled in production environment.
+        "qualtricsUrl"      => "https://nlpsych.qualtrics.com/SE",  // The base url for Qualtrics surveys to address.
+        "surveyId"          => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address.
+        "allowUrlOverrides" => true,                                // Whether or not Tool Consumers are allowed to override qualtricsUrl by specifying a custom value.
+        "allowIdOverrides"  => true                                 // Whether or not Tool Consumers are allowed to override surveyId by specifying a custom value.
     );
 
     /**

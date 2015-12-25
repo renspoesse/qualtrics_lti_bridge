@@ -1,7 +1,12 @@
 <?php
-// Load up the Basic LTI Support code
-require_once 'lib/blti.php';
 
+// Load the tool.
+
+require_once "index.php";
+
+// TODO: write testing code.
+
+/*
 // Initialize, all secrets are 'secret', do not set session, and do not redirect
 $context = new BLTI("secret", false, false);
 ?>
@@ -45,3 +50,4 @@ print "</pre>";
     </script>
 </body>
 </html>
+*/
