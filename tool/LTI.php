@@ -135,14 +135,18 @@ class LTI
             $server = new OAuthServer($this->consumerSecrets);
             $server->add_signature_method(new OAuthSignatureMethod_HMAC_SHA1());
 
-            $request = OAuthRequest::from_request(null, null, $this->launchParams);
+            $request = OAuthRequest::from_request(null, null, $_REQUEST);
 
             try {
 
                 $server->verify_request($request);
                 return true;
 
-            } catch (Exception $ex) {
+            }
+            catch (Exception $ex) {
+
+                if (Config::get("debug"))
+                    exit($ex);
 
                 return false;
             }
@@ -154,52 +158,29 @@ class LTI
     /**
      * Launches the LTI tool after validation and authentication.
      *
-     * @param bool|true $performRedirect True to perform a redirect, false to launch within the existing context.
-     *
      * @return string The Qualtrics response if not redirected.
      * @throws Exception
      */
-    public function launch($performRedirect = true)
+    public function launch()
     {
-        // TODO: in hoeverre bestaan http_ functies nog in pecl? Goed documenteren in readme.
-
-        // Any custom (non LTI) parameters that have been specified by the Tool Consumer should be passed to
-        // Qualtrics to allow for customization. As per the LTI specification, these are prefixed with ext_.
-
-        // TODO: nee, we willen meer parameters, bijv user_id.
+        // Any parameters that have been specified by the Tool Consumer should be passed to Qualtrics to allow for customization.
 
         $urlParams = array(
 
-            "query" => "SID=" . $this->launchParams["ext_survey_id"]
+            "SID" => $this->launchParams["ext_survey_id"]
         );
 
-        foreach ($this->launchParams as $key => $val) {
+        foreach ($this->launchParams as $key => $val)
+            $urlParams[$key] = $val;
 
-            if (strpos($key, "ext_") !== 0)
-                $urlParams[$key] = $val;
-        }
+        // Build the request to the Qualtrics endpoint.
 
-        // Build the url to the Qualtrics endpoint.
+        $url = $this->launchParams["ext_qualtrics_url"];
+        $query = http_build_query($urlParams);
 
-        $url = http_build_url($this->launchParams["ext_qualtrics_url"], $urlParams);
+        // Perform the redirect.
 
-        // Perform the GET request.
-
-        if ($performRedirect) {
-
-            // Redirect the request to a new context.
-
-            header("Location:" . $url);
-        }
-        else {
-
-            // Perform the request within the current context.
-
-            $request = new HTTPRequest($url, HTTP_METH_POST);
-            $request->send();
-
-            return $request->getResponseBody();
-        }
+        header("Location: " . $url . "?" . $query);
     }
 
     /**

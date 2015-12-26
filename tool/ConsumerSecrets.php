@@ -77,7 +77,7 @@ class ConsumerSecrets extends OAuthDataStore
      */
     function lookup_token($consumer, $token_type, $token)
     {
-        return null; // Tokens are not supported.
+        return new OAuthToken($consumer, ""); // Tokens are not supported, but this method needs to return an object.
     }
 
     /**

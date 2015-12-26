@@ -52,7 +52,6 @@ a single survey should be created that contains several paths (A and B). Please 
 
 TODO: PHP etc DEPENDENCIES
 
-PECL
 Session cookies need to be enabled (use_cookies = 1) for callbacks to work
 Session lifetime determines how long a survey might take
 POST must be enabled on public pages

@@ -15,16 +15,16 @@ class Config
      */
     protected static $config = array(
 
+        "debug"             => true,                                // True to display debug messages. Should be disabled in production environment.
         "ext_qualtrics_url" => "https://nlpsych.qualtrics.com/SE",  // The base url for Qualtrics surveys to address.
         "ext_survey_id"     => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address.
         "allowUrlOverrides" => true,                                // Whether or not Tool Consumers are allowed to override qualtricsUrl by specifying a custom value.
         "allowIdOverrides"  => true,                                // Whether or not Tool Consumers are allowed to override surveyId by specifying a custom value.
         "consumerSecrets"   => array(                               // Consumer secrets for authentication. These should be kept private!
 
-            "Coursera_Rens_Test_AJASLGK!J$^19"   => "87654##$%^&*UYTRh",
+            "Coursera_Rens_Test"                 => "1234567890",
             "Coursera_Alexander_Test_JHGF&^%r44" => "098765432kjhgX"
         ),
-        "performRedirect"   => true,                                // Whether to perform the request by redirecting or by staying in the current context.
         "provideGrading"    => true
 
         // Though Qualtrics doesn't give us grading information, we can have it callback this tool after a survey
