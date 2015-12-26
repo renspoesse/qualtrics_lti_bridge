@@ -25,13 +25,9 @@
 class ConsumerSecrets extends OAuthDataStore
 {
     /**
-     * Private array that holds the credentials. Defaults are defined here in the form of key => secret.
+     * Private array that holds the credentials. Defaults are defined in Config.php in the form of key => secret.
      */
-    private $consumers = array(
-
-        "Coursera_Rens_Test_AJASLGK!J$^19"   => "87654##$%^&*UYTRh",
-        "Coursera_Alexander_Test_JHGF&^%r44" => "098765432kjhgX"
-    );
+    private $consumers = array();
 
     /**
      * Adds new or overwrites existing Tool Consumer credentials in the data store.

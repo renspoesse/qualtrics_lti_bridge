@@ -20,7 +20,12 @@ class Config
         "surveyId"          => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address.
         "allowUrlOverrides" => true,                                // Whether or not Tool Consumers are allowed to override qualtricsUrl by specifying a custom value.
         "allowIdOverrides"  => true,                                // Whether or not Tool Consumers are allowed to override surveyId by specifying a custom value.
-        "provideGrading"    => true                                 // Though Qualtrics doesn't give us grading information, we can still pass it back to the Tool Consumer requested.
+        // TODO: or does it? "provideGrading"    => true                                 // Though Qualtrics doesn't give us grading information, we can still pass it back to the Tool Consumer requested.
+        "consumerSecrets"   => array(                               // Consumer secrets for authentication. These should be kept private!
+
+            "Coursera_Rens_Test_AJASLGK!J$^19"   => "87654##$%^&*UYTRh",
+            "Coursera_Alexander_Test_JHGF&^%r44" => "098765432kjhgX"
+        )
     );
 
     /**
