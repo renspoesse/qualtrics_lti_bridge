@@ -6,16 +6,46 @@
  * TODO: supported parameters hier noteren.
  */
 
-require_once "../Config.php";  // Tool settings.
-require_once "../BLTI.php";    // Basic LTI class; contains the main logic for the tool.
+require_once "../Config.php";           // Tool settings.
+require_once "../ConsumerSecrets.php";  // Authentication class for Tool Consumers.
+require_once "../LTI.php";              // LTI class; contains the main logic for the tool.
 
-// Validate the launch request and optional grading callback.
+// Create the OAuth data store holding consumer secrets. All secrets defined in the configuration are added to the data store.
 
-// Identify the user.
+$secrets = new ConsumerSecrets();
 
-// Launch the learning tool.
+foreach (Config::get("consumerSecrets") as $key => $value)
+    $secrets->set_consumer($key, $value);
 
-// Pass back the grade if requested and enabled.
+// Create an instance of the LTI class.
+
+$lti = new LTI(
+
+    $consumerSecrets = $secrets         // Pass the collection of consumers that can be authenticated.
+// TODO: overige parameters hierbij zetten.
+);
+
+// 1. Validate the launch request and optional grading callback.
+
+if (!$lti->isValidRequest()) {
+
+    // The Tool Consumer made an invalid LTI request.
+
+    // TODO: WAT VERWACHT LTI BIJ FOUTEN?
+}
+
+// 2. Identify the user.
+
+if (!$lti->authenticate()) {
+
+    // The request didn't pass OAuth authentication.
+
+    // TODO: WAT VERWACHT LTI NU?
+}
+
+// 3. Launch the learning tool.
+
+// 4. Pass back the grade if requested and enabled.
 
 // TODO: er moet ook een grading callback zijn ivm Coursera required opdrachten.
 // TODO: iets met Context Roles doen?

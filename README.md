@@ -52,14 +52,14 @@ a single survey should be created that contains several paths (A and B). Please 
 
 TODO: PHP etc DEPENDENCIES
 
-## Setting up Qualtrics
+## Setting up the Tool Provider (Qualtrics)
 
-## Setting up the tool
+## Setting up the Tool Provider (tool)
 
 * TODO: AUTHENTICATION DOCUMENTEN
 * TODO: DEFAULT URL SETTING VOOR QUALTRICS: youruniversity.qualtrics.com bijv. Deze kan dan worden overriden via custom parameters in Coursera.
 
-## Setting up Coursera
+## Setting up the Tool Consumer (Coursera)
 
 ## Supported LTI operations
 

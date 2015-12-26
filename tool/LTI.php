@@ -5,23 +5,6 @@ require_once "lib/OAuth.php"; // OAuth library code.
 // TODO: check against LTI 1.1 specification.
 
 /**
- * Returns true if this is a Basic LTI message with minimum values to meet the protocol.
- *
- * @return bool
- */
-function is_basic_lti_request()
-{
-    // TODO: camel case en verplaatsen naar LTI class.
-
-    $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request";
-    $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0";
-    $resource_link_id = $_REQUEST["resource_link_id"];
-    if ($good_message_type and $good_lti_version and isset($resource_link_id)) return (true);
-
-    return false;
-}
-
-/**
  * Basic LTI class that does the setup and provides utility functions.
  */
 class LTI
@@ -155,6 +138,29 @@ class LTI
             $this->redirect();
             $this->complete = true;
         }
+    }
+
+    /**
+     * Returns true if this is a Basic LTI message with minimum values to meet the protocol.
+     *
+     * @return bool
+     */
+    function isValidRequest()
+    {
+        // TODO: welke parameters moeten bekend zijn?
+        // HIER NIET DE REQUEST OPVRAGEN! MOET IN CONSTRUCTOR!
+
+        $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request";
+        $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0";
+        $resource_link_id = $_REQUEST["resource_link_id"];
+        if ($good_message_type and $good_lti_version and isset($resource_link_id)) return (true);
+
+        return false;
+    }
+
+    function authenticate()
+    {
+        return false;
     }
 
     function addSession($location)
