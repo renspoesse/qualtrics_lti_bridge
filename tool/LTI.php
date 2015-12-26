@@ -9,6 +9,7 @@ require_once "lib/OAuth.php"; // OAuth library code.
  */
 class LTI
 {
+    /*
     public $valid = false;
     public $complete = false;
     public $message = false;
@@ -16,151 +17,178 @@ class LTI
     public $info = false;
     public $row = false;
     public $context_id = false;  // Override context_id
+    */
 
-    function __construct($consumerSecrets, $parm = false, $usesession = true, $doredirect = true)
+    private $launchParams = array();
+    private $consumerSecrets = null;
+
+    private $isValidated = false;
+    private $isAuthenticated = false;
+
+    /**
+     * Creates a new instance of the LTI class.
+     *
+     * @param array               $launchParams    The LTI launch parameters for the request.
+     * @param OAuthDataStore|null $consumerSecrets The OAuthDataStore that holds consumer secrets for authentication. Null to disable authentication.
+     * @param bool|true           $useSession      Whether launch parameters should be retrieved from and stored in a session variable.
+     */
+    public function __construct($launchParams, $consumerSecrets = null, $useSession = true)
     {
+        // Check if launch parameters have been specified.
 
-        // If this request is not an LTI Launch, either
-        // give up or try to retrieve the context from session
-        if (!is_basic_lti_request()) {
-            if ($usesession === false) return;
-            if (strlen(session_id()) > 0) {
-                $row = $_SESSION['_basiclti_lti_row'];
-                if (isset($row)) $this->row = $row;
-                $context_id = $_SESSION['_basiclti_lti_context_id'];
-                if (isset($context_id)) $this->context_id = $context_id;
-                $info = $_SESSION['_basic_lti_context'];
-                if (isset($info)) {
-                    $this->info = $info;
-                    $this->valid = true;
+        if (empty($launchParams)) {
 
-                    return;
-                }
-                $this->message = "Could not find context in session";
+            // Launch parameters haven't been specified. If session is enabled, we can try retrieving previous
+            // parameters from the session context.
 
-                return;
+            if ($useSession && isset($_SESSION["launchParams"])) {
+
+                $launchParams = $_SESSION["launchParams"];
             }
-            $this->message = "Session not available";
-
-            return;
+            else
+                throw new InvalidArgumentException("launchParams should be a non-empty array.");
         }
 
-        // Insure we have a valid launch
-        if (empty($_REQUEST["oauth_consumer_key"])) {
-            $this->message = "Missing oauth_consumer_key in request";
+        $this->launchParams = $launchParams;
 
-            return;
-        }
-        $oauth_consumer_key = $_REQUEST["oauth_consumer_key"];
+        // Store the launch parameters in a session variable if requested. If not, clear the session variable that might have been set before.
 
-        // Find the secret - either form the parameter as a string or
-        // look it up in a database from parameters we are given
-        $secret = false;
-        $row = false;
-        if (is_string($parm)) {
-            $secret = $parm;
-        } else if (!is_array($parm)) {
-            $this->message = "Constructor requires a secret or database information.";
-
-            return;
-        } else {
-            $sql = 'SELECT * FROM ' . $parm['table'] . ' WHERE ' .
-                ($parm['key_column'] ? $parm['key_column'] : 'oauth_consumer_key') .
-                '=' .
-                "'" . mysql_real_escape_string($oauth_consumer_key) . "'";
-            $result = mysql_query($sql);
-            $num_rows = mysql_num_rows($result);
-            if ($num_rows != 1) {
-                $this->message = "Your consumer is not authorized oauth_consumer_key=" . $oauth_consumer_key;
-
-                return;
-            } else {
-                while ($row = mysql_fetch_assoc($result)) {
-                    $secret = $row[$parms['secret_column'] ? $parms['secret_column'] : 'secret'];
-                    $context_id = $row[$parms['context_column'] ? $parms['context_column'] : 'context_id'];
-                    if ($context_id) $this->context_id = $context_id;
-                    $this->row = $row;
-                    break;
-                }
-                if (!is_string($secret)) {
-                    $this->message = "Could not retrieve secret oauth_consumer_key=" . $oauth_consumer_key;
-
-                    return;
-                }
-            }
-        }
-
-        // Verify the message signature
-        $store = new TrivialOAuthDataStore();
-        $store->add_consumer($oauth_consumer_key, $secret);
-
-        $server = new OAuthServer($store);
-
-        $method = new OAuthSignatureMethod_HMAC_SHA1();
-        $server->add_signature_method($method);
-        $request = OAuthRequest::from_request();
-
-        $this->basestring = $request->get_signature_base_string();
-
-        try {
-            $server->verify_request($request);
-            $this->valid = true;
-        } catch (Exception $e) {
-            $this->message = $e->getMessage();
-
-            return;
-        }
-
-        // Store the launch information in the session for later
-        $newinfo = array();
-        foreach ($_POST as $key => $value) {
-            if ($key == "basiclti_submit") continue;
-            if (strpos($key, "oauth_") === false) {
-                $newinfo[$key] = $value;
-                continue;
-            }
-            if ($key == "oauth_consumer_key") {
-                $newinfo[$key] = $value;
-                continue;
-            }
-        }
-
-        $this->info = $newinfo;
-        if ($usesession == true and strlen(session_id()) > 0) {
-            $_SESSION['_basic_lti_context'] = $this->info;
-            unset($_SESSION['_basiclti_lti_row']);
-            unset($_SESSION['_basiclti_lti_context_id']);
-            if ($this->row) $_SESSION['_basiclti_lti_row'] = $this->row;
-            if ($this->context_id) $_SESSION['_basiclti_lti_context_id'] = $this->context_id;
-        }
-
-        if ($this->valid && $doredirect) {
-            $this->redirect();
-            $this->complete = true;
-        }
+        if ($useSession)
+            $_SESSION["launchParams"] = $launchParams;
+        else
+            unset($_SESSION["launchParams"]);
     }
 
     /**
-     * Returns true if this is a Basic LTI message with minimum values to meet the protocol.
+     * Checks if this is an LTI 1.1 message with minimum values to meet the protocol.
+     * Required parameters have been taken from http://www.imsglobal.org/specs/ltiv1p1/implementation-guide
      *
-     * @return bool
+     * @return bool True if validated, otherwise false.
      */
-    function isValidRequest()
+    public function validate()
     {
-        // TODO: welke parameters moeten bekend zijn?
-        // HIER NIET DE REQUEST OPVRAGEN! MOET IN CONSTRUCTOR!
+        // This indicates that this is a basic launch message. This allows a TP to accept a number of different LTI
+        // message types at the same launch URL. This parameter is required.
 
-        $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request";
-        $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0";
-        $resource_link_id = $_REQUEST["resource_link_id"];
-        if ($good_message_type and $good_lti_version and isset($resource_link_id)) return (true);
+        if (!array_key_exists("lti_message_type", $this->launchParams) || $this->launchParams["lti_message_type"] != "basic-lti-launch-request")
+            $this->isValidated = false;
 
-        return false;
+        // This indicates which version of the specification is being used for this particular message. Since launches
+        // for version 1.1 are upwards compatible with 1.0 launches, this value is not advanced for LTI 1.1. This
+        // parameter is required.
+
+        else if (!array_key_exists("lti_version", $this->launchParams) || $this->launchParams["lti_version"] != "LTI-1p0")
+            $this->isValidated = false;
+
+        // This is an opaque unique identifier that the TC guarantees will be unique within the TC for every placement
+        // of the link. If the tool / activity is placed multiple times in the same context, each of those placements
+        // will be distinct. This value will also change if the item is exported from one system or context and imported
+        // into another system or context. This parameter is required.
+
+        else if (!array_key_exists("resource_link_id", $this->launchParams) || empty($this->launchParams["resource_link_id"]))
+            $this->isValidated = false;
+
+        // We have some custom parameters that apply to Qualtrics requests only.
+
+        else if (!array_key_exists("qualtricsUrl", $this->launchParams) || empty($this->launchParams["qualtricsUrl"]))
+            $this->isValidated = false;
+
+        else if (!array_key_exists("surveyId", $this->launchParams) || empty($this->launchParams["surveyId"]))
+            $this->isValidated = false;
+
+        return $this->isValidated;
     }
 
-    function authenticate()
+    /**
+     * Tries to authenticate the LTI launch request based on the provided launch parameters.
+     *
+     * @return bool True if authenticated, otherwise false.
+     */
+    public function authenticate()
     {
-        return false;
+        // Check if a consumer key was provided. If not, we have nothing to authenticate and therefore return false.
+
+        if (!empty($this->launchParams["oauth_consumer_key"])) {
+
+            // Check if a data store of consumer secrets has been set. If not, authentication has been disabled.
+
+            if (!isset($this->consumerSecrets)) {
+
+                $this->isAuthenticated = true;
+            }
+            else {
+
+                // Perform OAuth verification on the launch parameters.
+
+                $server = new OAuthServer($this->consumerSecrets);
+                $server->add_signature_method(new OAuthSignatureMethod_HMAC_SHA1());
+
+                $request = OAuthRequest::from_request(null, null, $this->launchParams);
+
+                try {
+
+                    $server->verify_request($request);
+                    $this->isAuthenticated = true;
+
+                } catch (Exception $ex) {
+
+                    $this->isAuthenticated = false;
+                }
+            }
+        }
+        else {
+
+            $this->isAuthenticated = false;
+        }
+
+        return $this->isAuthenticated;
+    }
+
+    public function launch($performRedirect = true)
+    {
+        if (!$this->isValidated)
+            throw new Exception("LTI launch request needs to be validated first.");
+
+        if (!$this->isAuthenticated)
+            throw new Exception("LTI launch request needs to be authenticated first.");
+
+        // TODO: in hoeverre bestaan http_ functies nog in pecl? Goed documenteren in readme.
+
+        // Any custom (non LTI) parameters that have been specified by the Tool Consumer should be passed to
+        // Qualtrics to allow for customization. As per the LTI specification, these are prefixed with ext_.
+
+        $urlParams = array(
+
+            "query" => "SID=" . $this->launchParams["surveyId"]
+        );
+
+        foreach ($this->launchParams as $key => $val) {
+
+            if (strpos($key, "ext_") !== 0)
+                $urlParams[$key] = $val;
+        }
+
+        // Build the url to the Qualtrics endpoint.
+
+        $url = http_build_url($this->launchParams["qualtricsUrl"], $urlParams);
+
+        // Perform the GET request.
+
+        if ($performRedirect) {
+
+            // Redirect the request to a new context.
+
+            header("Location:" . $url);
+        }
+        else {
+
+            // Perform the request within the current context.
+
+            $request = new HTTPRequest($url, HTTP_METH_POST);
+            $request->send();
+
+            return $request->getResponseBody();
+        }
     }
 
     function addSession($location)
@@ -168,13 +196,25 @@ class LTI
         if (ini_get('session.use_cookies') == 0) {
             if (strpos($location, '?') > 0) {
                 $location = $location . '&';
-            } else {
+            }
+            else {
                 $location = $location . '?';
             }
             $location = $location . session_name() . '=' . session_id();
         }
 
         return $location;
+    }
+
+    // TODO: Add javasript version if headers are already sent?
+    function redirect()
+    {
+        $host = $_SERVER['HTTP_HOST'];
+        $uri = $_SERVER['PHP_SELF'];
+        $location = $_SERVER['HTTPS'] ? 'https://' : 'http://';
+        $location = $location . $host . $uri;
+        $location = $this->addSession($location);
+        header("Location: $location");
     }
 
     function isInstructor()
@@ -292,24 +332,14 @@ class LTI
         return false;
     }
 
-    // TODO: Add javasript version if headers are already sent?
-    function redirect()
-    {
-        $host = $_SERVER['HTTP_HOST'];
-        $uri = $_SERVER['PHP_SELF'];
-        $location = $_SERVER['HTTPS'] ? 'https://' : 'http://';
-        $location = $location . $host . $uri;
-        $location = $this->addSession($location);
-        header("Location: $location");
-    }
-
     function dump()
     {
         if (!$this->valid or $this->info == false) return "Context not valid\n";
         $ret = "";
         if ($this->isInstructor()) {
             $ret .= "isInstructor() = true\n";
-        } else {
+        }
+        else {
             $ret .= "isInstructor() = false\n";
         }
         $ret .= "getUserKey() = " . $this->getUserKey() . "\n";

@@ -52,6 +52,8 @@ a single survey should be created that contains several paths (A and B). Please 
 
 TODO: PHP etc DEPENDENCIES
 
+PECL
+
 ## Setting up the Tool Provider (Qualtrics)
 
 ## Setting up the Tool Provider (tool)
