@@ -2,28 +2,13 @@
 
 require_once "lib/OAuth.php"; // OAuth library code.
 
-// TODO: check against LTI 1.1 specification.
-
 /**
  * Basic LTI class that does the setup and provides utility functions.
  */
 class LTI
 {
-    /*
-    public $valid = false;
-    public $complete = false;
-    public $message = false;
-    public $basestring = false;
-    public $info = false;
-    public $row = false;
-    public $context_id = false;  // Override context_id
-    */
-
     private $launchParams = array();
     private $consumerSecrets = null;
-
-    private $isValidated = false;
-    private $isAuthenticated = false;
 
     /**
      * Creates a new instance of the LTI class.
@@ -34,6 +19,7 @@ class LTI
      */
     public function __construct($launchParams, $consumerSecrets = null, $useSession = true)
     {
+        /*
         // Check if launch parameters have been specified.
 
         if (empty($launchParams)) {
@@ -48,37 +34,44 @@ class LTI
             else
                 throw new InvalidArgumentException("launchParams should be a non-empty array.");
         }
+        */
 
         $this->launchParams = $launchParams;
+        $this->consumerSecrets = $consumerSecrets;
 
+        /*
         // Store the launch parameters in a session variable if requested. If not, clear the session variable that might have been set before.
 
         if ($useSession)
             $_SESSION["launchParams"] = $launchParams;
         else
             unset($_SESSION["launchParams"]);
+        */
     }
 
     /**
-     * Checks if this is an LTI 1.1 message with minimum values to meet the protocol.
+     * Checks if this is an LTI 1.1 launch request with minimum values to meet the protocol.
      * Required parameters have been taken from http://www.imsglobal.org/specs/ltiv1p1/implementation-guide
      *
-     * @return bool True if validated, otherwise false.
+     * @return bool True if valid, otherwise false.
      */
-    public function validate()
+    public function isValidLaunchRequest()
     {
+        if (empty($this->launchParams))
+            return false;
+
         // This indicates that this is a basic launch message. This allows a TP to accept a number of different LTI
         // message types at the same launch URL. This parameter is required.
 
         if (!array_key_exists("lti_message_type", $this->launchParams) || $this->launchParams["lti_message_type"] != "basic-lti-launch-request")
-            $this->isValidated = false;
+            return false;
 
         // This indicates which version of the specification is being used for this particular message. Since launches
         // for version 1.1 are upwards compatible with 1.0 launches, this value is not advanced for LTI 1.1. This
         // parameter is required.
 
         else if (!array_key_exists("lti_version", $this->launchParams) || $this->launchParams["lti_version"] != "LTI-1p0")
-            $this->isValidated = false;
+            return false;
 
         // This is an opaque unique identifier that the TC guarantees will be unique within the TC for every placement
         // of the link. If the tool / activity is placed multiple times in the same context, each of those placements
@@ -86,17 +79,39 @@ class LTI
         // into another system or context. This parameter is required.
 
         else if (!array_key_exists("resource_link_id", $this->launchParams) || empty($this->launchParams["resource_link_id"]))
-            $this->isValidated = false;
+            return false;
 
         // We have some custom parameters that apply to Qualtrics requests only.
 
-        else if (!array_key_exists("qualtricsUrl", $this->launchParams) || empty($this->launchParams["qualtricsUrl"]))
-            $this->isValidated = false;
+        else if (!array_key_exists("ext_qualtrics_url", $this->launchParams) || empty($this->launchParams["ext_qualtrics_url"]))
+            return false;
 
-        else if (!array_key_exists("surveyId", $this->launchParams) || empty($this->launchParams["surveyId"]))
-            $this->isValidated = false;
+        else if (!array_key_exists("ext_survey_id", $this->launchParams) || empty($this->launchParams["ext_survey_id"]))
+            return false;
 
-        return $this->isValidated;
+        return true;
+    }
+
+    /**
+     * Checks if this is a valid grading callback.
+     * Note that the parameters required for a grading callback are also included in an LTI launch request.
+     *
+     * @return bool True if valid, otherwise false.
+     */
+    public function isValidGradingCallback()
+    {
+        if (empty($this->launchParams))
+            return false;
+
+        if (!array_key_exists("lis_result_sourcedid", $this->launchParams) || empty($this->launchParams["lis_result_sourcedid"]))
+            return false;
+
+        // We have some custom parameters that apply to Qualtrics requests only.
+
+        else if (!array_key_exists("ext_grade", $this->launchParams) || empty($this->launchParams["ext_grade"]))
+            return false;
+
+        return true;
     }
 
     /**
@@ -104,7 +119,7 @@ class LTI
      *
      * @return bool True if authenticated, otherwise false.
      */
-    public function authenticate()
+    public function isAuthenticated()
     {
         // Check if a consumer key was provided. If not, we have nothing to authenticate and therefore return false.
 
@@ -112,54 +127,50 @@ class LTI
 
             // Check if a data store of consumer secrets has been set. If not, authentication has been disabled.
 
-            if (!isset($this->consumerSecrets)) {
+            if (!isset($this->consumerSecrets))
+                return true;
 
-                $this->isAuthenticated = true;
-            }
-            else {
+            // Perform OAuth verification on the launch parameters.
 
-                // Perform OAuth verification on the launch parameters.
+            $server = new OAuthServer($this->consumerSecrets);
+            $server->add_signature_method(new OAuthSignatureMethod_HMAC_SHA1());
 
-                $server = new OAuthServer($this->consumerSecrets);
-                $server->add_signature_method(new OAuthSignatureMethod_HMAC_SHA1());
+            $request = OAuthRequest::from_request(null, null, $this->launchParams);
 
-                $request = OAuthRequest::from_request(null, null, $this->launchParams);
+            try {
 
-                try {
+                $server->verify_request($request);
+                return true;
 
-                    $server->verify_request($request);
-                    $this->isAuthenticated = true;
+            } catch (Exception $ex) {
 
-                } catch (Exception $ex) {
-
-                    $this->isAuthenticated = false;
-                }
+                return false;
             }
         }
-        else {
 
-            $this->isAuthenticated = false;
-        }
-
-        return $this->isAuthenticated;
+        return false;
     }
 
+    /**
+     * Launches the LTI tool after validation and authentication.
+     *
+     * @param bool|true $performRedirect True to perform a redirect, false to launch within the existing context.
+     *
+     * @return string The Qualtrics response if not redirected.
+     * @throws Exception
+     */
     public function launch($performRedirect = true)
     {
-        if (!$this->isValidated)
-            throw new Exception("LTI launch request needs to be validated first.");
-
-        if (!$this->isAuthenticated)
-            throw new Exception("LTI launch request needs to be authenticated first.");
-
         // TODO: in hoeverre bestaan http_ functies nog in pecl? Goed documenteren in readme.
 
         // Any custom (non LTI) parameters that have been specified by the Tool Consumer should be passed to
         // Qualtrics to allow for customization. As per the LTI specification, these are prefixed with ext_.
 
+        // TODO: nee, we willen meer parameters, bijv user_id.
+
         $urlParams = array(
 
-            "query" => "SID=" . $this->launchParams["surveyId"]
+            "query" => "SID=" . $this->launchParams["ext_survey_id"]
         );
 
         foreach ($this->launchParams as $key => $val) {
@@ -170,7 +181,7 @@ class LTI
 
         // Build the url to the Qualtrics endpoint.
 
-        $url = http_build_url($this->launchParams["qualtricsUrl"], $urlParams);
+        $url = http_build_url($this->launchParams["ext_qualtrics_url"], $urlParams);
 
         // Perform the GET request.
 
@@ -191,168 +202,52 @@ class LTI
         }
     }
 
-    function addSession($location)
+    /**
+     * Registers a session variable that holds information for the grading callback if applicable.
+     * If not enough information for the callback is available, it won't be registered.
+     *
+     * @return bool True if the variable was registered, false otherwise.
+     */
+    public function registerCallbackSession()
     {
-        if (ini_get('session.use_cookies') == 0) {
-            if (strpos($location, '?') > 0) {
-                $location = $location . '&';
-            }
-            else {
-                $location = $location . '?';
-            }
-            $location = $location . session_name() . '=' . session_id();
+        // The lis_result_sourcedid is a unique identifier in the Tool Consumer's gradebook.
+
+        $sourcedId = $this->launchParams["lis_result_sourcedid"];
+        $outcomeUrl = $this->launchParams["lis_outcome_service_url"];
+
+        // If we have enough information to perform a callback, store the launch parameters in a session
+        // variable to be able to do so. Note that we hold a session variable for each sourcedId - this
+        // ensures that multiple tool requests within a single session are supported.
+
+        if (!empty($sourcedId) && !empty($outcomeUrl)) {
+
+            $_SESSION[$sourcedId] = $this->launchParams;
+            return true;
         }
 
-        return $location;
-    }
-
-    // TODO: Add javasript version if headers are already sent?
-    function redirect()
-    {
-        $host = $_SERVER['HTTP_HOST'];
-        $uri = $_SERVER['PHP_SELF'];
-        $location = $_SERVER['HTTPS'] ? 'https://' : 'http://';
-        $location = $location . $host . $uri;
-        $location = $this->addSession($location);
-        header("Location: $location");
-    }
-
-    function isInstructor()
-    {
-        $roles = $this->info['roles'];
-        $roles = strtolower($roles);
-        if (!(strpos($roles, "instructor") === false)) return true;
-        if (!(strpos($roles, "administrator") === false)) return true;
-
         return false;
     }
 
-    function getUserEmail()
+    public function performGradingCallback()
     {
-        $email = $this->info['lis_person_contact_email_primary'];
-        if (strlen($email) > 0) return $email;
-        # Sakai Hack
-        $email = $this->info['lis_person_contact_emailprimary'];
-        if (strlen($email) > 0) return $email;
+        $sourcedId = $this->launchParams["lis_result_sourcedid"];
+        $grade = $this->launchParams["ext_grade"];
 
-        return false;
-    }
+        if (!empty($sourcedId) && $this->isValidGrade($grade) && !empty($_SESSION[$sourcedId])) {
 
-    function getUserShortName()
-    {
-        $email = $this->getUserEmail();
-        $givenname = $this->info['lis_person_name_given'];
-        $familyname = $this->info['lis_person_name_family'];
-        $fullname = $this->info['lis_person_name_full'];
-        if (strlen($email) > 0) return $email;
-        if (strlen($givenname) > 0) return $givenname;
-        if (strlen($familyname) > 0) return $familyname;
+            // There's session information available for the grading callback with this sourcedid.
+            // Use it to perform the callback.
 
-        return $this->getUserName();
-    }
+            // TODO: perform grading callback to Coursera.
 
-    function getUserName()
-    {
-        $givenname = $this->info['lis_person_name_given'];
-        $familyname = $this->info['lis_person_name_family'];
-        $fullname = $this->info['lis_person_name_full'];
-        if (strlen($fullname) > 0) return $fullname;
-        if (strlen($familyname) > 0 and strlen($givenname) > 0) return $givenname + $familyname;
-        if (strlen($givenname) > 0) return $givenname;
-        if (strlen($familyname) > 0) return $familyname;
+            // Unset the session variable to prevent multiple callbacks.
 
-        return $this->getUserEmail();
-    }
-
-    function getUserKey()
-    {
-        $oauth = $this->info['oauth_consumer_key'];
-        $id = $this->info['user_id'];
-        if (strlen($id) > 0 and strlen($oauth) > 0) return $oauth . ':' . $id;
-
-        return false;
-    }
-
-    function getUserImage()
-    {
-        $image = $this->info['user_image'];
-        if (strlen($image) > 0) return $image;
-        $email = $this->getUserEmail();
-        if ($email === false) return false;
-        $size = 40;
-        $grav_url = $_SERVER['HTTPS'] ? 'https://' : 'http://';
-        $grav_url = $grav_url . "www.gravatar.com/avatar.php?gravatar_id=" . md5(strtolower($email)) . "&size=" . $size;
-
-        return $grav_url;
-    }
-
-    function getResourceKey()
-    {
-        $oauth = $this->info['oauth_consumer_key'];
-        $id = $this->info['resource_link_id'];
-        if (strlen($id) > 0 and strlen($oauth) > 0) return $oauth . ':' . $id;
-
-        return false;
-    }
-
-    function getResourceTitle()
-    {
-        $title = $this->info['resource_link_title'];
-        if (strlen($title) > 0) return $title;
-
-        return false;
-    }
-
-    function getConsumerKey()
-    {
-        $oauth = $this->info['oauth_consumer_key'];
-
-        return $oauth;
-    }
-
-    function getCourseKey()
-    {
-        if ($this->context_id) return $this->context_id;
-        $oauth = $this->info['oauth_consumer_key'];
-        $id = $this->info['context_id'];
-        if (strlen($id) > 0 and strlen($oauth) > 0) return $oauth . ':' . $id;
-
-        return false;
-    }
-
-    function getCourseName()
-    {
-        $label = $this->info['context_label'];
-        $title = $this->info['context_title'];
-        $id = $this->info['context_id'];
-        if (strlen($label) > 0) return $label;
-        if (strlen($title) > 0) return $title;
-        if (strlen($id) > 0) return $id;
-
-        return false;
-    }
-
-    function dump()
-    {
-        if (!$this->valid or $this->info == false) return "Context not valid\n";
-        $ret = "";
-        if ($this->isInstructor()) {
-            $ret .= "isInstructor() = true\n";
+            unset($_SESSION[$sourcedId]);
         }
-        else {
-            $ret .= "isInstructor() = false\n";
-        }
-        $ret .= "getUserKey() = " . $this->getUserKey() . "\n";
-        $ret .= "getUserEmail() = " . $this->getUserEmail() . "\n";
-        $ret .= "getUserShortName() = " . $this->getUserShortName() . "\n";
-        $ret .= "getUserName() = " . $this->getUserName() . "\n";
-        $ret .= "getUserImage() = " . $this->getUserImage() . "\n";
-        $ret .= "getResourceKey() = " . $this->getResourceKey() . "\n";
-        $ret .= "getResourceTitle() = " . $this->getResourceTitle() . "\n";
-        $ret .= "getCourseName() = " . $this->getCourseName() . "\n";
-        $ret .= "getCourseKey() = " . $this->getCourseKey() . "\n";
-        $ret .= "getConsumerKey() = " . $this->getConsumerKey() . "\n";
+    }
 
-        return $ret;
+    private function isValidGrade($grade)
+    {
+        return true; // TODO: validate grade between 0.0 and 1.0
     }
 }

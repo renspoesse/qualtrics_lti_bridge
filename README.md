@@ -53,6 +53,8 @@ a single survey should be created that contains several paths (A and B). Please 
 TODO: PHP etc DEPENDENCIES
 
 PECL
+Session cookies need to be enabled (use_cookies = 1) for callbacks to work
+Session lifetime determines how long a survey might take
 
 ## Setting up the Tool Provider (Qualtrics)
 
@@ -72,3 +74,6 @@ Currently supported LTI operations are:
 These are limited by the functionality that Qualtrics provides.
 
 TODO: IETS ZEGGEN OVER QUERY PARAMETERSIN QUALTRICS
+
+TODO: CALLBACK KAN GEIMPLEMENTEERD WORDEN VIA BIJV EEN SESSIE ID DAT NAAR QUALTRICS GAAT EN TERUGKOMT NAAR DE TOOL,
+MAAR DIT KAN MAKKELIJK GESPOOFD WORDEN, DUS GRADES ZIJN NOOIT BETROUWBAAR.
