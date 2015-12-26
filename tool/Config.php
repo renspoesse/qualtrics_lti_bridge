@@ -41,7 +41,7 @@ class Config
      * @param string $key The key to set, for example: "qualtricsUrl".
      * @param mixed  $val The value to set, for example: "youruniversity.qualtrics.com".
      */
-    protected static function set($key, $val)
+    public static function set($key, $val)
     {
         self::$config[$key] = $val;
     }
@@ -53,7 +53,7 @@ class Config
      *
      * @return mixed
      */
-    protected static function get($key)
+    public static function get($key)
     {
         return self::$config[$key];
     }
