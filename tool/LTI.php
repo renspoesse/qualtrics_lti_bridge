@@ -1,7 +1,8 @@
 <?php
 
-require_once "lib/OAuth.php";       // OAuth library code.
-require_once "ConsumerSecrets.php"; // OAuth data for Tool Consumers.
+require_once "lib/OAuth.php"; // OAuth library code.
+
+// TODO: check against LTI 1.1 specification.
 
 /**
  * Returns true if this is a Basic LTI message with minimum values to meet the protocol.
@@ -10,7 +11,7 @@ require_once "ConsumerSecrets.php"; // OAuth data for Tool Consumers.
  */
 function is_basic_lti_request()
 {
-    // TODO: camel case en verplaatsen naar BLTI class.
+    // TODO: camel case en verplaatsen naar LTI class.
 
     $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request";
     $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0";
@@ -23,7 +24,7 @@ function is_basic_lti_request()
 /**
  * Basic LTI class that does the setup and provides utility functions.
  */
-class BLTI
+class LTI
 {
     public $valid = false;
     public $complete = false;
@@ -33,7 +34,7 @@ class BLTI
     public $row = false;
     public $context_id = false;  // Override context_id
 
-    function __construct($parm = false, $usesession = true, $doredirect = true)
+    function __construct($consumerSecrets, $parm = false, $usesession = true, $doredirect = true)
     {
 
         // If this request is not an LTI Launch, either
