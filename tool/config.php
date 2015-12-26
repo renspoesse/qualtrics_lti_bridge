@@ -1,8 +1,6 @@
 <?php
 
 /**
- * Class Config
- *
  * The Config class contains configuration settings for the tool. Settings can be accessed like this:
  *
  * Config::set("qualtricsUrl", "newValue");
@@ -21,7 +19,8 @@ class Config
         "qualtricsUrl"      => "https://nlpsych.qualtrics.com/SE",  // The base url for Qualtrics surveys to address.
         "surveyId"          => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address.
         "allowUrlOverrides" => true,                                // Whether or not Tool Consumers are allowed to override qualtricsUrl by specifying a custom value.
-        "allowIdOverrides"  => true                                 // Whether or not Tool Consumers are allowed to override surveyId by specifying a custom value.
+        "allowIdOverrides"  => true,                                // Whether or not Tool Consumers are allowed to override surveyId by specifying a custom value.
+        "provideGrading"    => true                                 // Though Qualtrics doesn't give us grading information, we can still pass it back to the Tool Consumer requested.
     );
 
     /**

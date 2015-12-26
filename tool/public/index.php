@@ -6,8 +6,19 @@
  * TODO: supported parameters hier noteren.
  */
 
-require_once "lib/blti.php";    // Basic LTI Support code
-require_once "config.php";      // Tool settings.
+require_once "../Config.php";  // Tool settings.
+require_once "../BLTI.php";    // Basic LTI class; contains the main logic for the tool.
+
+// Validate the launch request and optional grading callback.
+
+// Identify the user.
+
+// Launch the learning tool.
+
+// Pass back the grade if requested and enabled.
+
+// TODO: er moet ook een grading callback zijn ivm Coursera required opdrachten.
+// TODO: iets met Context Roles doen?
 
 /*
 $context = new BLTI('moocs_are_great', false, false);
