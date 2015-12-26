@@ -3,7 +3,8 @@ This Qualtrics LTI Bridge tool was developed by Rens Poesse at the University of
 It has been based on qualtrics_lti_bridge by Simon Wiles at Stanford University,
 which is accessible at the link [tiny.cc/qualtricslti](http://tiny.cc/qualtricslti).
 
-The tool currently follows the LTI 1.1 standard.
+The tool currently follows the LTI 1.1 standard; this is documented as the LTI specification Coursera supports.
+For the same reason OAuth 1.0a is used, in [Andy Smith's implementation](http://oauth.googlecode.com/svn/code/php/).
 
 ## Project goals and information
 
@@ -38,18 +39,27 @@ which means that it should run at a publicly accessible endpoint (e.g., youruniv
 
 So, to get started:
 
-* Download a copy of all files in the `tool` folder. The tool is written in PHP and therefore should be hosted on
-a server that supports PHP execution. `index.php` is the default entry point for the tool and most PHP servers are
+* Download a copy of all files in the `/tool` folder. The tool is written in PHP and therefore should be hosted on
+a server that supports PHP execution. `/tool/public/index.php` is the default entry point for the tool and most PHP servers are
 configured to automatically serve this file as the tool endpoint is requested (i.e., youruniversity.com/qualtrics-lti-bridge/tool
-should point to youruniversity.com/qualtrics-lti-bridge/tool/index.php).
-* TODO: AUTHENTICATION DOCUMENTEN
-* TODO: DEFAULT URL SETTING VOOR QUALTRICS: youruniversity.qualtrics.com bijv. Deze kan dan worden overriden via custom parameters in Coursera.
+should point to youruniversity.com/qualtrics-lti-bridge/tool/public/index.php).
 * Once the tool has been set up correctly, a target questionnaire should be made in Qualtrics. In the case of A/B testing,
-a single survey should be created that contains several paths (A and B). Please note down the Id of the created survey,
+a single survey should be created that contains several paths (A and B). Please note down the url and Id of the created survey.
+* KORTE OMSCHRIJVING VAN PROCES IN TOOL
+* KORTE OMSCHRIJVING VAN PROCES IN COURSERA
 
 ## Tool dependencies
 
 TODO: PHP etc DEPENDENCIES
+
+## Setting up Qualtrics
+
+## Setting up the tool
+
+* TODO: AUTHENTICATION DOCUMENTEN
+* TODO: DEFAULT URL SETTING VOOR QUALTRICS: youruniversity.qualtrics.com bijv. Deze kan dan worden overriden via custom parameters in Coursera.
+
+## Setting up Coursera
 
 ## Supported LTI operations
 
@@ -58,3 +68,5 @@ Currently supported LTI operations are:
 * TODO
 
 These are limited by the functionality that Qualtrics provides.
+
+TODO: IETS ZEGGEN OVER QUERY PARAMETERSIN QUALTRICS
