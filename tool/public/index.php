@@ -53,7 +53,7 @@ else {
         // It's the Tool Consumer's responsibility to handle the response code.
 
         http_response_code(400);
-        exit();
+        exit("Not a valid LTI launch request.");
     }
 
     // 2. Identify the user.
@@ -65,7 +65,7 @@ else {
         // It's the Tool Consumer's responsibility to handle the response code.
 
         http_response_code(402);
-        exit();
+        exit("Launch request could not be authorized.");
     }
 
     // 3. Register a session to perform the grading callback if allowed and supported.

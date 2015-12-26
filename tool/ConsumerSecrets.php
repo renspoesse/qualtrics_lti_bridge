@@ -1,5 +1,7 @@
 <?php
 
+require_once("lib/OAuth.php");
+
 /**
  * A "trivial" memory-based store that holds consumer credentials.
  *
