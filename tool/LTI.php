@@ -15,38 +15,11 @@ class LTI
      *
      * @param array               $launchParams    The LTI launch parameters for the request.
      * @param OAuthDataStore|null $consumerSecrets The OAuthDataStore that holds consumer secrets for authentication. Null to disable authentication.
-     * @param bool|true           $useSession      Whether launch parameters should be retrieved from and stored in a session variable.
      */
-    public function __construct($launchParams, $consumerSecrets = null, $useSession = true)
+    public function __construct($launchParams, $consumerSecrets = null)
     {
-        /*
-        // Check if launch parameters have been specified.
-
-        if (empty($launchParams)) {
-
-            // Launch parameters haven't been specified. If session is enabled, we can try retrieving previous
-            // parameters from the session context.
-
-            if ($useSession && isset($_SESSION["launchParams"])) {
-
-                $launchParams = $_SESSION["launchParams"];
-            }
-            else
-                throw new InvalidArgumentException("launchParams should be a non-empty array.");
-        }
-        */
-
         $this->launchParams = $launchParams;
         $this->consumerSecrets = $consumerSecrets;
-
-        /*
-        // Store the launch parameters in a session variable if requested. If not, clear the session variable that might have been set before.
-
-        if ($useSession)
-            $_SESSION["launchParams"] = $launchParams;
-        else
-            unset($_SESSION["launchParams"]);
-        */
     }
 
     /**
@@ -94,8 +67,6 @@ class LTI
 
     /**
      * Checks if this is a valid grading callback.
-     * Note that the parameters required for a grading callback are also included in an LTI launch request.
-     *
      * @return bool True if valid, otherwise false.
      */
     public function isValidGradingCallback()
@@ -163,15 +134,18 @@ class LTI
      */
     public function launch()
     {
-        // Any parameters that have been specified by the Tool Consumer should be passed to Qualtrics to allow for customization.
+        // Any parameters that have been specified by the Tool Consumer can be passed to Qualtrics to allow for customization.
 
         $urlParams = array(
 
             "SID" => $this->launchParams["ext_survey_id"]
         );
 
-        foreach ($this->launchParams as $key => $val)
-            $urlParams[$key] = $val;
+        foreach ($this->launchParams as $key => $val) {
+
+            if (Config::get("ext_pass_all") || array_key_exists($key, Config::get("ext_pass_params")))
+                $urlParams[$key] = $val;
+        }
 
         // Build the request to the Qualtrics endpoint.
 
@@ -189,7 +163,7 @@ class LTI
      *
      * @return bool True if the variable was registered, false otherwise.
      */
-    public function registerCallbackSession()
+    public function tryRegisterCallbackSession()
     {
         // The lis_result_sourcedid is a unique identifier in the Tool Consumer's gradebook.
 
@@ -209,24 +183,55 @@ class LTI
         return false;
     }
 
-    public function performGradingCallback()
+    /**
+     * Performs a grading callback using the previously registered session variable that holds information for the callback.
+     * If no session information is available, the callback won't be performed.
+     *
+     * @return bool True if the callback was performed, false otherwise.
+     *
+     * @throws Exception Throws an exception when either the grade received is invalid or invalid information has been stored in session.
+     */
+    public function tryPerformGradingCallback()
     {
         $sourcedId = $this->launchParams["lis_result_sourcedid"];
         $grade = $this->launchParams["ext_grade"];
 
-        if (!empty($sourcedId) && $this->isValidGrade($grade) && !empty($_SESSION[$sourcedId])) {
+        if (empty($sourcedId) || !$this->isValidGrade($grade))
+            return false;
 
-            // There's session information available for the grading callback with this sourcedid.
-            // Use it to perform the callback.
+        // Check if we have enough information for the callback.
 
-            // TODO: perform grading callback to Coursera.
+        if (empty($sourcedId) || empty($_SESSION[$sourcedId]))
+            return false;
 
-            // Unset the session variable to prevent multiple callbacks.
+        // Check if the information we have is valid.
 
-            unset($_SESSION[$sourcedId]);
-        }
+        if (!$this->isValidGrade($grade))
+            throw new Exception("Invalid grade received from Qualtrics.");
+
+        if (empty($_SESSION[$sourcedId]["lis_outcome_service_url"]))
+            throw new Exception("Somehow the callback information was stored in session, but the outcome service url is (now) empty.");
+
+        // There's session information available for the grading callback with this sourcedid.
+        // Use it to perform the callback.
+
+        // TODO: perform grading callback to Coursera.
+
+        // Unset the session variable to prevent multiple callbacks.
+
+        unset($_SESSION[$sourcedId]);
+
+        return true;
     }
 
+    /**
+     * Checks if the grade is valid according to the LTI specification.
+     * This means it should be a floating point between 0.0 and 1.0.
+     *
+     * @param $grade
+     *
+     * @return bool
+     */
     private function isValidGrade($grade)
     {
         return true; // TODO: validate grade between 0.0 and 1.0

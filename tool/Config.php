@@ -18,17 +18,20 @@ class Config
         "debug"             => true,                                // True to display debug messages. Should be disabled in production environment.
         "ext_qualtrics_url" => "https://nlpsych.qualtrics.com/SE",  // The base url for Qualtrics surveys to address.
         "ext_survey_id"     => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address.
-        "allowUrlOverrides" => true,                                // Whether or not Tool Consumers are allowed to override qualtricsUrl by specifying a custom value.
-        "allowIdOverrides"  => true,                                // Whether or not Tool Consumers are allowed to override surveyId by specifying a custom value.
+        "ext_pass_params"   => array(                               // The parameters that should be passed from the launch request to Qualtrics.
+
+            "user_id",
+            "lis_result_sourcedid" // Required for grading callbacks.
+        ),
+        "ext_pass_all"      => false,                               // True to ignore the ext_pass_params value and pass all parameters to Qualtrics.
+        "allowUrlOverrides" => true,                                // Whether or not Tool Consumers are allowed to override ext_qualtrics_url by specifying a custom value.
+        "allowIdOverrides"  => true,                                // Whether or not Tool Consumers are allowed to override ext_survey_id by specifying a custom value.
         "consumerSecrets"   => array(                               // Consumer secrets for authentication. These should be kept private!
 
-            "Coursera_Rens_Test"                 => "1234567890",
-            "Coursera_Alexander_Test_JHGF&^%r44" => "098765432kjhgX"
+            "Coursera_Rens_Test"      => "1234567890",
+            "Coursera_Alexander_Test" => "0987654321"
         ),
-        "provideGrading"    => true
-
-        // Though Qualtrics doesn't give us grading information, we can have it callback this tool after a survey
-        // has been completed. TODO: omschrijven dat dan een signature ofzo moet worden meegegeven die zichtbaar is.
+        "provideGrading"    => true                                 // SEE README FOR IMPORTANT INFORMATION REGARDING GRADING.
     );
 
     /**

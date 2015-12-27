@@ -57,14 +57,23 @@ See below for a more detailed guide.
 The Qualtrics LTI Bridge tool only depends on PHP. It should work on a standard PHP 5.5+ installation with the following settings:
 
 * Session cookies need to be enabled for callbacks to work (session.use_cookies = 1).
-* Session lifetime needs to be longer than it takes a user to complete a Qualtrics survey for callbacks to work (session.cache_expire = value in minutes.
+* Session lifetime needs to be longer than it takes a user to complete a Qualtrics survey for callbacks to work (session.cache_expire = value in minutes).
 
 * The web server needs to be configured to allow POST requests on `/tool/public/index.php`.
 
 ## Setting up the Tool Provider (Qualtrics)
 
-EMBEDDED DATA ie parameters uitleggen
-TODO: IETS ZEGGEN OVER QUERY PARAMETERSIN QUALTRICS
+Qualtrics provides documentation for reading parameter values from the query string (a GET requests such as this tool provides):
+
+[Qualtrics documentation on query string parameters](http://www.qualtrics.com/university/researchsuite/developer-tools/api-integration/passing-information-through-query-strings/)
+
+For example, to retrieve the user id passed by the Tool Consumer in Qualtrics, an embedded data element can be added
+to the survey flow with the field name `user_id`.
+
+In order for grading callbacks to work, Qualtrics should read the `lis_result_sourcedid` from the query string and
+pass it to this tool's endpoint after completing the survey together with a `ext_grade` parameter ranging from 0.0 to 1.0.
+
+// TODO: test this and document it better.
 
 ## Setting up the Tool Provider (tool)
 
@@ -103,8 +112,8 @@ When adding an LTI Item to a coursera lesson, a few things need to be set:
 * Outcome Callback should be set to yes if you want grading callbacks.
 * Depending on your tool configuration, at least two custom parameters need to be specified (for example):
 
-1. ext_qualtrics_url = https://youruniversity.qualtrics.com/SE
-2. ext_survey_id = SV_7U4egQ3f78yO52B
+1. `ext_qualtrics_url` = `https://youruniversity.qualtrics.com/SE`
+2. `ext_survey_id` = `SV_7U4egQ3f78yO52B`
 
 ## Supported LTI operations
 

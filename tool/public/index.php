@@ -4,7 +4,7 @@
  * This is the default entry point for the tool. It should be specified as the LTI endpoint for the Tool Consumer.
  */
 
-require_once "../Config.php";               // Tool settings.
+require_once "../Config.php";
 
 try {
 
@@ -18,7 +18,7 @@ try {
     foreach (Config::get("consumerSecrets") as $key => $value)
         $secrets->set_consumer($key, $value);
 
-    // Create an instance of the LTI class.
+    // Create an instance of the LTI class, using the POST (or GET) parameters of the request as launch parameters.
 
     $launchParams = $_REQUEST;
 
@@ -34,29 +34,9 @@ try {
         $secrets        // Pass the collection of consumers that can be authenticated.
     );
 
-    // Check if the request is a grading callback from Qualtrics.
+    // 1. Validate the launch request.
 
-    if ($lti->isValidGradingCallback()) {
-
-        if (Config::get("provideGrading"))
-            $lti->performGradingCallback();
-
-        echo "Your result has been received from Qualtrics. This means everything went fine :)" . "<br />";
-        echo "You can close this window now.";
-    }
-    else {
-
-        // 1. Validate the launch request.
-
-        if (!$lti->isValidLaunchRequest()) {
-
-            // The Tool Consumer made an invalid LTI request.
-            // Set the HTTP response to 400 (Bad Request) and stop script execution.
-            // It's the Tool Consumer's responsibility to handle the response code.
-
-            http_response_code(400);
-            exit("Not a valid LTI launch request.");
-        }
+    if ($lti->isValidLaunchRequest()) {
 
         // 2. Identify the user.
 
@@ -73,13 +53,35 @@ try {
         // 3. Register a session to perform the grading callback if allowed and supported.
 
         if (Config::get("provideGrading"))
-            $lti->registerCallbackSession();
+            $lti->tryRegisterCallbackSession();
 
         // 4. Launch the learning tool.
 
         $lti->launch();
 
         // A HTTP redirect has been performed and this code is never executed. This is the end of script execution.
+    }
+    else if ($lti->isValidGradingCallback()) {
+
+        // The request is a grading callback from Qualtrics.
+
+        echo "Your result has been received from Qualtrics. This means everything went fine :)" . "<br />";
+
+        if (Config::get("provideGrading") && $lti->tryPerformGradingCallback()) {
+
+            echo "We have successfully recorded your grade.<br />";
+        }
+
+        echo "You can now close this window.";
+    }
+    else {
+
+        // The Tool Consumer made an invalid LTI request.
+        // Set the HTTP response to 400 (Bad Request) and stop script execution.
+        // It's the Tool Consumer's responsibility to handle the response code.
+
+        http_response_code(400);
+        exit("Not a valid LTI launch request.");
     }
 }
 catch (Exception $ex) {
