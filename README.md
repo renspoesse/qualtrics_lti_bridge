@@ -72,6 +72,7 @@ to the survey flow with the field name `user_id`.
 
 In order for grading callbacks to work, Qualtrics should read the `lis_result_sourcedid` from the query string and
 pass it to this tool's endpoint after completing the survey together with a `ext_grade` parameter ranging from 0.0 to 1.0.
+The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-bridge/tool/public/index.php?lis_result_sourcedid=${e://Field/lis_result_sourcedid}&ext_grade=1` on survey termination.
 
 // TODO: test this and document it better.
 
