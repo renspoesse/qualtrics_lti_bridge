@@ -143,7 +143,7 @@ class LTI
 
         foreach ($this->launchParams as $key => $val) {
 
-            if (Config::get("ext_pass_all") || array_key_exists($key, Config::get("ext_pass_params")))
+            if (Config::get("ext_pass_all") || in_array($key, Config::get("ext_pass_params")))
                 $urlParams[$key] = $val;
         }
 
