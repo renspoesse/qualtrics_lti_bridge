@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/21124/renspoesse/qualtrics_lti_bridge.svg)](https://zenodo.org/badge/latestdoi/21124/renspoesse/qualtrics_lti_bridge)
+
 This Qualtrics LTI Bridge tool was developed by Rens Poesse at the University of Amsterdam.
 For questions, please contact HIER ADRES VAN ALEXANDER / UVA?
 
