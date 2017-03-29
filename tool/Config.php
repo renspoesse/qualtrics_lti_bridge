@@ -28,8 +28,8 @@ class Config
         "allowIdOverrides"  => true,                                // Whether or not Tool Consumers are allowed to override ext_survey_id by specifying a custom value.
         "consumerSecrets"   => array(                               // Consumer secrets for authentication. These should be kept private!
 
-            "Coursera_Rens_Test"      => "1234567890",
-            "Coursera_Alexander_Test" => "0987654321"
+            "LTI_Bridge_Demonstration" => "powertotheteachers",
+            "LTI_Bridge_Development"   => "powertotheresearchers"
         ),
         "provideGrading"    => true                                 // SEE README FOR IMPORTANT INFORMATION REGARDING GRADING.
     );
