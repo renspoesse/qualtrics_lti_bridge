@@ -234,6 +234,6 @@ class LTI
      */
     private function isValidGrade($grade)
     {
-        return true; // TODO: validate grade between 0.0 and 1.0
+        return is_numeric($grade) && floatval($grade) >= 0 && floatval($grade) <= 1;
     }
 }
