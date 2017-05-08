@@ -4,6 +4,7 @@
  * This is the default entry point for the tool. It should be specified as the LTI endpoint for the Tool Consumer.
  */
 
+require_once "../../vendor/autoload.php";
 require_once "../Config.php";
 
 try {

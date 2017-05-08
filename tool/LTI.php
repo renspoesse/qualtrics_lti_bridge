@@ -193,6 +193,8 @@ class LTI
      */
     public function tryPerformGradingCallback()
     {
+        $consumerKey = $this->launchParams["oauth_consumer_key"];
+        $resourceLinkId = $this->launchParams["resource_link_id"];
         $sourcedId = $this->launchParams["lis_result_sourcedid"];
         $grade = $this->launchParams["ext_grade"];
 
@@ -216,6 +218,19 @@ class LTI
         // Use it to perform the callback.
 
         // TODO: perform grading callback to Coursera.
+
+        //$db_connector = new \IMSGlobal\LTI\ToolProvider\DataConnector\DataConnector(null);
+        //
+        //$consumer = new \IMSGlobal\LTI\ToolProvider\ToolConsumer($consumerKey, $db_connector);
+        //$resource_link = \IMSGlobal\LTI\ToolProvider\ResourceLink::fromConsumer($consumer, $resourceLinkId);
+        //
+        //$user = new \IMSGlobal\LTI\ToolProvider\User();
+        //
+        //$user->resourceLink = null; // TODO RENS
+        //$user->ltiResultSourcedId = $sourcedId;
+        //
+        //$outcome = new \IMSGlobal\LTI\ToolProvider\Outcome($grade);
+        //$ok = $resource_link->doOutcomesService(\IMSGlobal\LTI\ToolProvider\ResourceLink::EXT_WRITE, $outcome, $user);
 
         // Unset the session variable to prevent multiple callbacks.
 
