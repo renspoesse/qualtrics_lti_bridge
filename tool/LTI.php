@@ -1,6 +1,8 @@
 <?php
 
-require_once "lib/OAuth.php"; // OAuth library code.
+namespace QualtricsLTIBridge;
+
+use GuzzleHttp\Client;
 
 /**
  * Basic LTI class that does the setup and provides utility functions.
@@ -14,7 +16,7 @@ class LTI
      * Creates a new instance of the LTI class.
      *
      * @param array               $launchParams    The LTI launch parameters for the request.
-     * @param OAuthDataStore|null $consumerSecrets The OAuthDataStore that holds consumer secrets for authentication. Null to disable authentication.
+     * @param \OAuthDataStore|null $consumerSecrets The OAuthDataStore that holds consumer secrets for authentication. Null to disable authentication.
      */
     public function __construct($launchParams, $consumerSecrets = null)
     {
@@ -103,10 +105,10 @@ class LTI
 
             // Perform OAuth verification on the launch parameters.
 
-            $server = new OAuthServer($this->consumerSecrets);
-            $server->add_signature_method(new OAuthSignatureMethod_HMAC_SHA1());
+            $server = new \OAuthServer($this->consumerSecrets);
+            $server->add_signature_method(new \OAuthSignatureMethod_HMAC_SHA1());
 
-            $request = OAuthRequest::from_request(null, null, $_REQUEST);
+            $request = \OAuthRequest::from_request(null, null, $_REQUEST);
 
             try {
 
@@ -114,7 +116,7 @@ class LTI
                 return true;
 
             }
-            catch (Exception $ex) {
+            catch (\Exception $ex) {
 
                 if (Config::get("debug"))
                     exit($ex);
@@ -130,7 +132,7 @@ class LTI
      * Launches the LTI tool after validation and authentication.
      *
      * @return string The Qualtrics response if not redirected.
-     * @throws Exception
+     * @throws \Exception
      */
     public function launch()
     {
@@ -189,7 +191,7 @@ class LTI
      *
      * @return bool True if the callback was performed, false otherwise.
      *
-     * @throws Exception Throws an exception when either the grade received is invalid or invalid information has been stored in session.
+     * @throws \Exception Throws an exception when either the grade received is invalid or invalid information has been stored in session.
      */
     public function tryPerformGradingCallback()
     {
@@ -209,15 +211,17 @@ class LTI
         // Check if the information we have is valid.
 
         if (!$this->isValidGrade($grade))
-            throw new Exception("Invalid grade received from Qualtrics.");
+            throw new \Exception("Invalid grade received from Qualtrics.");
 
         if (empty($_SESSION[$sourcedId]["lis_outcome_service_url"]))
-            throw new Exception("Somehow the callback information was stored in session, but the outcome service url is (now) empty.");
+            throw new \Exception("Somehow the callback information was stored in session, but the outcome service url is (now) empty.");
 
         // There's session information available for the grading callback with this sourcedid.
         // Use it to perform the callback.
 
         // TODO: perform grading callback to Coursera.
+
+        $client = new Client();
 
         //$db_connector = new \IMSGlobal\LTI\ToolProvider\DataConnector\DataConnector(null);
         //

@@ -1,16 +1,24 @@
 <?php
 
+//ini_set('display_startup_errors',1);
+//ini_set('display_errors',1);
+//error_reporting(-1);
+
+require_once "../../vendor/autoload.php";
+require_once("../lib/OAuth.php");
+require_once "../Config.php";
+require_once "../ConsumerSecrets.php";  // Authentication class for Tool Consumers.
+require_once "../LTI.php";              // LTI class; contains the main logic for the tool.
+
+use QualtricsLTIBridge\ConsumerSecrets;
+use QualtricsLTIBridge\Config;
+use QualtricsLTIBridge\LTI;
+
 /**
  * This is the default entry point for the tool. It should be specified as the LTI endpoint for the Tool Consumer.
  */
 
-require_once "../../vendor/autoload.php";
-require_once "../Config.php";
-
 try {
-
-    require_once "../ConsumerSecrets.php";  // Authentication class for Tool Consumers.
-    require_once "../LTI.php";              // LTI class; contains the main logic for the tool.
 
     // Create the OAuth data store holding consumer secrets. All secrets defined in the configuration are added to the data store.
 

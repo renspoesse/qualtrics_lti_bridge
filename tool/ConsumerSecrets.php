@@ -1,6 +1,6 @@
 <?php
 
-require_once("lib/OAuth.php");
+namespace QualtricsLTIBridge;
 
 /**
  * A "trivial" memory-based store that holds consumer credentials.
@@ -24,7 +24,7 @@ require_once("lib/OAuth.php");
  * Note: that if a consumer secret is compromised, an attacker could forge launch requests (or worse!) grading/outcome
  * requests to Coursera, which can effectively be used to impersonate a student and/or cheat on graded, LTI-based quizzes.
  */
-class ConsumerSecrets extends OAuthDataStore
+class ConsumerSecrets extends \OAuthDataStore
 {
     /**
      * Private array that holds the credentials. Defaults are defined in Config.php in the form of key => secret.
@@ -48,7 +48,7 @@ class ConsumerSecrets extends OAuthDataStore
      *
      * @param $consumer_key
      *
-     * @return null|OAuthConsumer
+     * @return null|\OAuthConsumer
      */
     function lookup_consumer($consumer_key)
     {
@@ -58,7 +58,7 @@ class ConsumerSecrets extends OAuthDataStore
 
             // Return an OAuthConsumer object with the specifiek consumer key and secret.
 
-            return new OAuthConsumer($consumer_key, $this->consumers[$consumer_key], NULL);
+            return new \OAuthConsumer($consumer_key, $this->consumers[$consumer_key], NULL);
         }
 
         // Consumer not found. Return null to indicate the error.
@@ -77,7 +77,7 @@ class ConsumerSecrets extends OAuthDataStore
      */
     function lookup_token($consumer, $token_type, $token)
     {
-        return new OAuthToken($consumer, ""); // Tokens are not supported, but this method needs to return an object.
+        return new \OAuthToken($consumer, ""); // Tokens are not supported, but this method needs to return an object.
     }
 
     /**
@@ -116,10 +116,11 @@ class ConsumerSecrets extends OAuthDataStore
      * Returns a new token attached to this consumer.
      *
      * @param $consumer
+     * @param $callback
      *
      * @return null
      */
-    function new_request_token($consumer)
+    function new_request_token($consumer, $callback = null)
     {
         return null; // Tokens are not supported.
     }
@@ -129,10 +130,11 @@ class ConsumerSecrets extends OAuthDataStore
      *
      * @param $token
      * @param $consumer
+     * @param $verifier
      *
      * @return null
      */
-    function new_access_token($token, $consumer)
+    function new_access_token($token, $consumer, $verifier = null)
     {
         return null; // Tokens are not supported.
     }

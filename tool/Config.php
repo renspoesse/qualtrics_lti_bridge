@@ -1,5 +1,7 @@
 <?php
 
+namespace QualtricsLTIBridge;
+
 /**
  * The Config class contains configuration settings for the tool. Settings can be accessed like this:
  *
