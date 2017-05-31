@@ -1,5 +1,6 @@
 {
     "require": {
-        "imsglobal/lti": "^3.0"
+        "imsglobal/lti": "^3.0",
+        "guzzlehttp/guzzle": "~6.0"
     }
 }
