@@ -20,6 +20,11 @@ use QualtricsLTIBridge\LTI;
 
 try {
 
+    if (!is_writable(session_save_path()))
+        die('Session path "' . session_save_path() . '" is not writable for PHP.');
+
+    session_start();
+
     // Create the OAuth data store holding consumer secrets. All secrets defined in the configuration are added to the data store.
 
     $secrets = new ConsumerSecrets();

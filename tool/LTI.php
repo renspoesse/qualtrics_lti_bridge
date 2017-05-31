@@ -3,6 +3,8 @@
 namespace QualtricsLTIBridge;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * Basic LTI class that does the setup and provides utility functions.
@@ -94,6 +96,8 @@ class LTI
      */
     public function isAuthenticated()
     {
+        //die(print_r($_REQUEST));
+
         // Check if a consumer key was provided. If not, we have nothing to authenticate and therefore return false.
 
         if (!empty($this->launchParams["oauth_consumer_key"])) {
@@ -114,7 +118,6 @@ class LTI
 
                 $server->verify_request($request);
                 return true;
-
             }
             catch (\Exception $ex) {
 
@@ -195,14 +198,8 @@ class LTI
      */
     public function tryPerformGradingCallback()
     {
-        $consumerKey = $this->launchParams["oauth_consumer_key"];
-        $consumerSecret = $this->launchParams["oauth_consumer_secret"];
-        $resourceLinkId = $this->launchParams["resource_link_id"];
         $sourcedId = $this->launchParams["lis_result_sourcedid"];
         $grade = $this->launchParams["ext_grade"];
-
-        if (empty($sourcedId) || !$this->isValidGrade($grade))
-            return false;
 
         // Check if we have enough information for the callback.
 
@@ -216,6 +213,9 @@ class LTI
 
         if (empty($_SESSION[$sourcedId]["lis_outcome_service_url"]))
             throw new \Exception("Somehow the callback information was stored in session, but the outcome service url is (now) empty.");
+
+        $consumerKey = $_SESSION[$sourcedId]["oauth_consumer_key"];
+        $consumerSecret = Config::get('consumerSecrets')[$consumerKey];
 
         // There's session information available for the grading callback with this sourcedid.
         // Use it to perform the callback.
@@ -231,7 +231,7 @@ class LTI
 
         $url = $_SESSION[$sourcedId]["lis_outcome_service_url"];
         $id = uniqid();
-        $gradeFormatted = number_format($grade, 1, '.');
+        $gradeFormatted = number_format(floatval($grade), 1, '.', ',');
 
         $xmlRequest = <<< EOD
 <?xml version="1.0" encoding="UTF-8"?>
@@ -277,26 +277,29 @@ EOD;
         $header = $req->to_header();
         $header .= "\nContent-Type: application/xml";
 
-        $response = $client->post($url, [
+        try {
 
-            'body' => $xmlRequest,
-            'headers' => explode('\n', $header)
-        ]);
+            $response = $client->post($url, [
 
-        // TODO: handle response
+                'body'    => $xmlRequest,
+                'headers' => explode("\n", $header)
+            ]);
 
-        //$db_connector = new \IMSGlobal\LTI\ToolProvider\DataConnector\DataConnector(null);
-        //
-        //$consumer = new \IMSGlobal\LTI\ToolProvider\ToolConsumer($consumerKey, $db_connector);
-        //$resource_link = \IMSGlobal\LTI\ToolProvider\ResourceLink::fromConsumer($consumer, $resourceLinkId);
-        //
-        //$user = new \IMSGlobal\LTI\ToolProvider\User();
-        //
-        //$user->resourceLink = null; // TODO RENS
-        //$user->ltiResultSourcedId = $sourcedId;
-        //
-        //$outcome = new \IMSGlobal\LTI\ToolProvider\Outcome($grade);
-        //$ok = $resource_link->doOutcomesService(\IMSGlobal\LTI\ToolProvider\ResourceLink::EXT_WRITE, $outcome, $user);
+            $body = $response->getBody()->getContents();
+            $success = strpos($body, 'success') !== false;
+
+            if (!$success) {
+
+                echo 'Something went wrong while recording your grade:<br />';
+                echo $body . '<br />';
+                return false;
+            }
+        }
+        catch (BadResponseException $ex) {
+
+            echo 'Something went wrong while recording your grade.<br />\'';
+            return false;
+        }
 
         // Unset the session variable to prevent multiple callbacks.
 
