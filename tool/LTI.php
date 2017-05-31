@@ -15,7 +15,7 @@ class LTI
     /**
      * Creates a new instance of the LTI class.
      *
-     * @param array               $launchParams    The LTI launch parameters for the request.
+     * @param array                $launchParams    The LTI launch parameters for the request.
      * @param \OAuthDataStore|null $consumerSecrets The OAuthDataStore that holds consumer secrets for authentication. Null to disable authentication.
      */
     public function __construct($launchParams, $consumerSecrets = null)
@@ -196,6 +196,7 @@ class LTI
     public function tryPerformGradingCallback()
     {
         $consumerKey = $this->launchParams["oauth_consumer_key"];
+        $consumerSecret = $this->launchParams["oauth_consumer_secret"];
         $resourceLinkId = $this->launchParams["resource_link_id"];
         $sourcedId = $this->launchParams["lis_result_sourcedid"];
         $grade = $this->launchParams["ext_grade"];
@@ -219,9 +220,70 @@ class LTI
         // There's session information available for the grading callback with this sourcedid.
         // Use it to perform the callback.
 
-        // TODO: perform grading callback to Coursera.
+        // NOTE:
+
+        // This service receives "Plain Old XML" (POX) messages signed using OAuth body signing [OAuth, 10].
+        // The service supports setting, retrieving and deleting LIS results associated with a particular user/resource combination.
+        // The only type of grade supported by this service is a decimal numeric grade in the range from 0.0 - 1.0.
+        // Additional types of outcomes and the ability for the TP to perform more detailed outcomes operations may be added at a later date.
 
         $client = new Client();
+
+        $url = $_SESSION[$sourcedId]["lis_outcome_service_url"];
+        $id = uniqid();
+        $gradeFormatted = number_format($grade, 1, '.');
+
+        $xmlRequest = <<< EOD
+<?xml version="1.0" encoding="UTF-8"?>
+<imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
+  <imsx_POXHeader>
+    <imsx_POXRequestHeaderInfo>
+      <imsx_version>V1.0</imsx_version>
+      <imsx_messageIdentifier>{$id}</imsx_messageIdentifier>
+    </imsx_POXRequestHeaderInfo>
+  </imsx_POXHeader>
+  <imsx_POXBody>
+    <replaceResultRequest>
+      <resultRecord>
+        <sourcedGUID>
+          <sourcedId>{$sourcedId}</sourcedId>
+        </sourcedGUID>
+        <result>
+          <resultScore>
+            <language>en</language>
+            <textString>{$gradeFormatted}</textString>
+          </resultScore>
+        </result>
+      </resultRecord>
+    </replaceResultRequest>
+  </imsx_POXBody>
+</imsx_POXEnvelopeRequest>
+EOD;
+
+        // Calculate body hash.
+
+        $hash = base64_encode(sha1($xmlRequest, true));
+        $params = array('oauth_body_hash' => $hash);
+
+        // Add OAuth signature.
+
+        $hmacMethod = new \OAuthSignatureMethod_HMAC_SHA1();
+        $consumer = new \OAuthConsumer($consumerKey, $consumerSecret, null);
+
+        $req = \OAuthRequest::from_consumer_and_token($consumer, null, 'POST', $url, $params);
+        $req->sign_request($hmacMethod, $consumer, null);
+
+        $params = $req->get_parameters();
+        $header = $req->to_header();
+        $header .= "\nContent-Type: application/xml";
+
+        $response = $client->post($url, [
+
+            'body' => $xmlRequest,
+            'headers' => explode('\n', $header)
+        ]);
+
+        // TODO: handle response
 
         //$db_connector = new \IMSGlobal\LTI\ToolProvider\DataConnector\DataConnector(null);
         //
