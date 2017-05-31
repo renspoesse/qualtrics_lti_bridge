@@ -96,8 +96,6 @@ class LTI
      */
     public function isAuthenticated()
     {
-        //die(print_r($_REQUEST));
-
         // Check if a consumer key was provided. If not, we have nothing to authenticate and therefore return false.
 
         if (!empty($this->launchParams["oauth_consumer_key"])) {
@@ -181,9 +179,13 @@ class LTI
 
         if (!empty($sourcedId) && !empty($outcomeUrl)) {
 
-            $_SESSION[$sourcedId] = $this->launchParams;
+            $_SESSION['test'] = $this->launchParams;
+            $_SESSION['callback'] = true; // For debugging.
+
             return true;
         }
+
+        $_SESSION['callback'] = false; // For debugging.
 
         return false;
     }
@@ -203,7 +205,7 @@ class LTI
 
         // Check if we have enough information for the callback.
 
-        if (empty($sourcedId) || empty($_SESSION[$sourcedId]))
+        if (empty($sourcedId) || empty($_SESSION['test']))
             return false;
 
         // Check if the information we have is valid.
@@ -211,10 +213,10 @@ class LTI
         if (!$this->isValidGrade($grade))
             throw new \Exception("Invalid grade received from Qualtrics.");
 
-        if (empty($_SESSION[$sourcedId]["lis_outcome_service_url"]))
+        if (empty($_SESSION['test']["lis_outcome_service_url"]))
             throw new \Exception("Somehow the callback information was stored in session, but the outcome service url is (now) empty.");
 
-        $consumerKey = $_SESSION[$sourcedId]["oauth_consumer_key"];
+        $consumerKey = $_SESSION['test']["oauth_consumer_key"];
         $consumerSecret = Config::get('consumerSecrets')[$consumerKey];
 
         // There's session information available for the grading callback with this sourcedid.
@@ -229,7 +231,7 @@ class LTI
 
         $client = new Client();
 
-        $url = $_SESSION[$sourcedId]["lis_outcome_service_url"];
+        $url = $_SESSION['test']["lis_outcome_service_url"];
         $id = uniqid();
         $gradeFormatted = number_format(floatval($grade), 1, '.', ',');
 
@@ -275,14 +277,17 @@ EOD;
 
         $params = $req->get_parameters();
         $header = $req->to_header();
-        $header .= "\nContent-Type: application/xml";
 
         try {
 
             $response = $client->post($url, [
 
                 'body'    => $xmlRequest,
-                'headers' => explode("\n", $header)
+                'headers' => [
+
+                    'Authorization' => substr($header, strlen('Authorization: ')),
+                    'Content-Type' => 'application/xml'
+                ]
             ]);
 
             $body = $response->getBody()->getContents();
@@ -303,7 +308,7 @@ EOD;
 
         // Unset the session variable to prevent multiple callbacks.
 
-        unset($_SESSION[$sourcedId]);
+        unset($_SESSION['test']);
 
         return true;
     }
