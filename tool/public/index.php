@@ -1,9 +1,5 @@
 <?php
 
-//ini_set('display_startup_errors',1);
-//ini_set('display_errors',1);
-//error_reporting(-1);
-
 require_once "../../vendor/autoload.php";
 require_once("../lib/OAuth.php");
 require_once "../Config.php";
@@ -13,6 +9,13 @@ require_once "../LTI.php";              // LTI class; contains the main logic fo
 use QualtricsLTIBridge\ConsumerSecrets;
 use QualtricsLTIBridge\Config;
 use QualtricsLTIBridge\LTI;
+
+if (Config::get("debug")) {
+
+    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 1);
+    error_reporting(-1);
+}
 
 /**
  * This is the default entry point for the tool. It should be specified as the LTI endpoint for the Tool Consumer.
