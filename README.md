@@ -73,8 +73,8 @@ For example, to retrieve the user id passed by the Tool Consumer in Qualtrics, a
 to the survey flow with the field name `user_id`.
 
 In order for grading callbacks to work, Qualtrics should read the `lis_result_sourcedid` from the query string and
-pass it to this tool's endpoint after completing the survey together with an `ext_grade` parameter ranging from 0.0 to 1.0.
-The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-bridge/tool/public/index.php?lis_result_sourcedid=${e://Field/lis_result_sourcedid}&ext_grade=1` on survey termination.
+pass it to this tool's endpoint after completing the survey together with an `custom_grade` parameter ranging from 0.0 to 1.0.
+The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-bridge/tool/public/index.php?lis_result_sourcedid=${e://Field/lis_result_sourcedid}&custom_grade=1` on survey termination.
 
 // TODO: test this and document it better.
 
@@ -82,11 +82,11 @@ The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-b
 
 Once a survey has been created in Qualtrics, there are two ways to configure its use in the tool.
 
-1. Open `/tool/Config.php` and specify the `ext_qualtrics_url` and `ext_survey_id` parameters to point to the survey.
+1. Open `/tool/Config.php` and specify the `custom_qualtrics_url` and `custom_survey_id` parameters to point to the survey.
 Disallow url and id overrides to only allow this specific survey to be opened.
-2. Open `/tool/Config.php` and set `ext_qualtrics_url` to the default url that you use for surveys.
-`ext_survey_id` doesn't need to be set. Allow url and id overrides to allow Tool Consumers to specify custom ext_survey_url
-and ext_survey_id parameters to the tool.
+2. Open `/tool/Config.php` and set `custom_qualtrics_url` to the default url that you use for surveys.
+`custom_survey_id` doesn't need to be set. Allow url and id overrides to allow Tool Consumers to specify custom custom_survey_url
+and custom_survey_id parameters to the tool.
 
 The second way is recommended as it allows for a variety of surveys to be handled with the tool. However,
 it only works if your Tool Consumer supports sending additional parameters (Coursera does).
@@ -115,8 +115,9 @@ When adding an LTI Item to a coursera lesson, a few things need to be set:
 * Outcome Callback should be set to yes if you want grading callbacks.
 * Depending on your tool configuration, at least two custom parameters need to be specified (for example):
 
-1. `ext_qualtrics_url` = `https://youruniversity.qualtrics.com/SE`
-2. `ext_survey_id` = `SV_7U4egQ3f78yO52B`
+1. `custom_qualtrics_url` = `https://youruniversity.qualtrics.com/SE`
+2. `custom_survey_id` = `SV_7U4egQ3f78yO52B`
+3. `custom_return_url` = `https://yourconsumer/return.php`
 
 ## Supported LTI operations
 

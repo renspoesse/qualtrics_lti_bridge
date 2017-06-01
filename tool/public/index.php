@@ -36,11 +36,11 @@ try {
 
     $launchParams = $_REQUEST;
 
-    if (!Config::get("allowUrlOverrides") || empty($launchParams["ext_qualtrics_url"]))
-        $launchParams["ext_qualtrics_url"] = Config::get("ext_qualtrics_url");
+    if (!Config::get("allowUrlOverrides") || empty($launchParams["custom_qualtrics_url"]))
+        $launchParams["custom_qualtrics_url"] = Config::get("custom_qualtrics_url");
 
-    if (!Config::get("allowIdOverrides") || empty($launchParams["ext_survey_id"]))
-        $launchParams["ext_survey_id"] = Config::get("ext_survey_id");
+    if (!Config::get("allowIdOverrides") || empty($launchParams["custom_survey_id"]))
+        $launchParams["custom_survey_id"] = Config::get("custom_survey_id");
 
     $lti = new LTI(
 
@@ -81,7 +81,7 @@ try {
 
         echo "Your result has been received from Qualtrics. This means everything went fine :)" . "<br />";
 
-        if (Config::get("provideGrading") && $lti->tryPerformGradingCallback()) {
+        if (Config::get("provideGrading") && $lti->tryPerformGradingCallback(true)) {
 
             echo "We have successfully recorded your grade.<br />";
         }

@@ -60,10 +60,10 @@ class LTI
 
         // We have some custom parameters that apply to Qualtrics requests only.
 
-        else if (!array_key_exists("ext_qualtrics_url", $this->launchParams) || empty($this->launchParams["ext_qualtrics_url"]))
+        else if (!array_key_exists("custom_qualtrics_url", $this->launchParams) || empty($this->launchParams["custom_qualtrics_url"]))
             return false;
 
-        else if (!array_key_exists("ext_survey_id", $this->launchParams) || empty($this->launchParams["ext_survey_id"]))
+        else if (!array_key_exists("custom_survey_id", $this->launchParams) || empty($this->launchParams["custom_survey_id"]))
             return false;
 
         return true;
@@ -83,7 +83,7 @@ class LTI
 
         // We have some custom parameters that apply to Qualtrics requests only.
 
-        else if (!array_key_exists("ext_grade", $this->launchParams) || empty($this->launchParams["ext_grade"]))
+        else if (!array_key_exists("custom_grade", $this->launchParams) || empty($this->launchParams["custom_grade"]))
             return false;
 
         return true;
@@ -141,18 +141,18 @@ class LTI
 
         $urlParams = array(
 
-            "SID" => $this->launchParams["ext_survey_id"]
+            "SID" => $this->launchParams["custom_survey_id"]
         );
 
         foreach ($this->launchParams as $key => $val) {
 
-            if (Config::get("ext_pass_all") || in_array($key, Config::get("ext_pass_params")))
+            if (Config::get("custom_pass_all") || in_array($key, Config::get("custom_pass_params")))
                 $urlParams[$key] = $val;
         }
 
         // Build the request to the Qualtrics endpoint.
 
-        $url = $this->launchParams["ext_qualtrics_url"];
+        $url = $this->launchParams["custom_qualtrics_url"];
         $query = http_build_query($urlParams);
 
         // Perform the redirect.
@@ -179,7 +179,7 @@ class LTI
 
         if (!empty($sourcedId) && !empty($outcomeUrl)) {
 
-            $_SESSION['test'] = $this->launchParams;
+            $_SESSION["test"] = $this->launchParams;
             $_SESSION['callback'] = true; // For debugging.
 
             return true;
@@ -198,14 +198,14 @@ class LTI
      *
      * @throws \Exception Throws an exception when either the grade received is invalid or invalid information has been stored in session.
      */
-    public function tryPerformGradingCallback()
+    public function tryPerformGradingCallback($doRedirect = false)
     {
         $sourcedId = $this->launchParams["lis_result_sourcedid"];
-        $grade = $this->launchParams["ext_grade"];
+        $grade = $this->launchParams["custom_grade"];
 
         // Check if we have enough information for the callback.
 
-        if (empty($sourcedId) || empty($_SESSION['test']))
+        if (empty($sourcedId) || empty($_SESSION["test"]))
             return false;
 
         // Check if the information we have is valid.
@@ -213,11 +213,14 @@ class LTI
         if (!$this->isValidGrade($grade))
             throw new \Exception("Invalid grade received from Qualtrics.");
 
-        if (empty($_SESSION['test']["lis_outcome_service_url"]))
+        if (empty($_SESSION["test"]["lis_outcome_service_url"]))
             throw new \Exception("Somehow the callback information was stored in session, but the outcome service url is (now) empty.");
 
-        $consumerKey = $_SESSION['test']["oauth_consumer_key"];
+        $consumerKey = $_SESSION["test"]["oauth_consumer_key"];
         $consumerSecret = Config::get('consumerSecrets')[$consumerKey];
+
+        $redirectUrl = array_key_exists("custom_return_url", $_SESSION["test"]) ? $_SESSION["test"]["custom_return_url"] : "";
+        $redirectUrl = array_key_exists("launch_presentation_return_url", $_SESSION["test"]) ? $_SESSION["test"]["launch_presentation_return_url"] : $redirectUrl;
 
         // There's session information available for the grading callback with this sourcedid.
         // Use it to perform the callback.
@@ -231,7 +234,7 @@ class LTI
 
         $client = new Client();
 
-        $url = $_SESSION['test']["lis_outcome_service_url"];
+        $url = $_SESSION["test"]["lis_outcome_service_url"];
         $id = uniqid();
         $gradeFormatted = number_format(floatval($grade), 1, '.', ',');
 
@@ -286,7 +289,7 @@ EOD;
                 'headers' => [
 
                     'Authorization' => substr($header, strlen('Authorization: ')),
-                    'Content-Type' => 'application/xml'
+                    'Content-Type'  => 'application/xml'
                 ]
             ]);
 
@@ -308,7 +311,14 @@ EOD;
 
         // Unset the session variable to prevent multiple callbacks.
 
-        unset($_SESSION['test']);
+        unset($_SESSION["test"]);
+
+        if ($doRedirect && !empty($redirectUrl)) {
+
+            // Perform a redirect.
+
+            header("Location: " . $redirectUrl);
+        }
 
         return true;
     }
