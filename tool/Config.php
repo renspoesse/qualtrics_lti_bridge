@@ -34,7 +34,8 @@ class Config
             "LTI_Bridge_Demonstration" => "powertotheteachers",
             "LTI_Bridge_Development"   => "powertotheresearchers"
         ),
-        "provideGrading"       => true                                 // SEE README FOR IMPORTANT INFORMATION REGARDING GRADING.
+        "provideGrading"       => true,                                // SEE README FOR IMPORTANT INFORMATION REGARDING GRADING.
+	    "verifyGuzzleRequests" => true
     );
 
     /**

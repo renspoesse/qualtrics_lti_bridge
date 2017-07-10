@@ -4,7 +4,6 @@ namespace QualtricsLTIBridge;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\RequestException;
 
 /**
  * Basic LTI class that does the setup and provides utility functions.
@@ -290,7 +289,8 @@ EOD;
 
                     'Authorization' => substr($header, strlen('Authorization: ')),
                     'Content-Type'  => 'application/xml'
-                ]
+                ],
+	            'verify'  => Config::get("verifyGuzzleRequests")
             ]);
 
             $body = $response->getBody()->getContents();
