@@ -235,7 +235,7 @@ class LTI
 
         $url = $_SESSION["test"]["lis_outcome_service_url"];
         $id = uniqid();
-        $gradeFormatted = number_format(floatval($grade), 1, '.', ',');
+        $gradeFormatted = number_format(floatval($grade), 2, '.', ',');
 
         $xmlRequest = <<< EOD
 <?xml version="1.0" encoding="UTF-8"?>
