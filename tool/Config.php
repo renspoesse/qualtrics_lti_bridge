@@ -19,7 +19,8 @@ class Config
 
         "debug"                => true,                                // True to display debug messages. Should be disabled in production environment.
         "custom_qualtrics_url" => "https://nlpsych.qualtrics.com/SE",  // The base url for Qualtrics surveys to address.
-        "custom_survey_id"     => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address.
+        "custom_survey_id"     => "SV_7U4egZ3kOYyO52B",                // The (default) survey to address. Demonstration without grading callback.
+	#"custom_survey_id"	=> "SV_7WzVMLISwePDaxT",		// The (default) survey to address. Demonstration for grading callback.
         #"custom_survey_id"     => "SV_bO9IijOwGYyAXzL",                // The (default) survey to address.
         "custom_pass_params"   => array(                               // The parameters that should be passed from the launch request to Qualtrics.
 
