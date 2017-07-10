@@ -108,7 +108,7 @@ When adding an LTI Item to a coursera lesson, a few things need to be set:
 
 * The Launch URL should point to this tool's endpoint.
 * The Consumer Key should be one defined in this tool's configuration.
-* The consumer Secret should match the secret for the key in this tool's configuration.
+* The Consumer Secret should match the secret for the key in this tool's configuration.
 * Learner Privacy should optionally be changed such that various extra parameters will be passed to Qualtrics.
 * Outcome Callback should be set to yes if you want grading callbacks.
 * Depending on your tool configuration, at least two custom parameters need to be specified (for example):
