@@ -29,9 +29,10 @@ First, a quick introduction on the mechanisms at work. Learning Tools Interopera
 interface contract for different learning tools to communicate. This means that LTI is not a piece of software but
 a protocol definition that states how learning tools should interact.
 
-In our example use case those learning tools are Coursera and Qualtrics. Qualtrics supports A/B testing, but Coursera
-does not. So we want to integrate Qualtrics with Coursera. Contrarily however, Coursera supports LTI integration but
-Qualtrics does not (yet). This is where the current project comes in. In LTI terms, our situation is as follows:
+In our example use case those learning tools are Coursera and Qualtrics. Qualtrics has extensive support for
+A/B testing, whereas Coursera's A/B testing functionality is quite limited. So we want to integrate Qualtrics with
+Coursera. Contrarily however, Coursera supports LTI integration but Qualtrics does not (yet). This is where the
+current project comes in. In LTI terms, our situation is as follows:
 
 * Tool Consumer: Coursera (but can be anything that supports LTI)
 * Tool Provider: Qualtrics LTI Bridge tool (this project) as a wrapper around Qualtrics
@@ -75,7 +76,7 @@ to the survey flow with the field name `user_id`.
 In order for grading callbacks to work, Qualtrics should read the `lis_result_sourcedid` from the query string and
 pass it to this tool's endpoint after completing the survey together with an `custom_grade` parameter ranging from 0.0 to 1.0.
 The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-bridge/tool/public/index.php?lis_result_sourcedid=${e://Field/lis_result_sourcedid}&custom_grade=1` on survey termination.
-git 
+
 ## Setting up the Tool Provider (tool)
 
 Once a survey has been created in Qualtrics, there are two ways to configure its use in the tool.
@@ -102,7 +103,7 @@ trusted as anyone with basic knowledge of HTTP requests will be able to spoof hi
 
 To enable this type of grading callbacks, which can still be useful if you trust your users, set `provideGrading` to `true`.
 
-## Setting up the Tool Consumer (Coursera)
+## Setting up the Tool Consumer (e.g., Coursera)
 
 When adding an LTI Item to a coursera lesson, a few things need to be set:
 
@@ -116,6 +117,8 @@ When adding an LTI Item to a coursera lesson, a few things need to be set:
 1. `custom_qualtrics_url` = `https://youruniversity.qualtrics.com/SE`
 2. `custom_survey_id` = `SV_7U4egQ3f78yO52B`
 3. `custom_return_url` = `https://yourconsumer/return.php`
+
+Note that Coursera automatically prepends `custom_` to the parameter name, so make sure to remove it (e.g., use `qualtrics_url` rather than `custom_qualtrics_url`.
 
 ## Supported LTI operations
 
