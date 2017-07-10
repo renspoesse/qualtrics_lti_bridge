@@ -74,7 +74,7 @@ For example, to retrieve the user id passed by the Tool Consumer in Qualtrics, a
 to the survey flow with the field name `user_id`.
 
 In order for grading callbacks to work, Qualtrics should read the `lis_result_sourcedid` from the query string and
-pass it to this tool's endpoint after completing the survey together with an `custom_grade` parameter ranging from 0.0 to 1.0.
+pass it to this tool's endpoint after completing the survey together with a `custom_grade` parameter ranging from 0.00 to 1.00.
 The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-bridge/tool/public/index.php?lis_result_sourcedid=${e://Field/lis_result_sourcedid}&custom_grade=1` on survey termination.
 
 ## Setting up the Tool Provider (tool)
