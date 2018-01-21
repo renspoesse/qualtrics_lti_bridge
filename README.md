@@ -74,7 +74,7 @@ For example, to retrieve the user id passed by the Tool Consumer in Qualtrics, a
 to the survey flow with the field name `user_id`.
 
 In order for grading callbacks to work, Qualtrics should read the `lis_result_sourcedid` from the query string and
-pass it to this tool's endpoint after completing the survey together with an `custom_grade` parameter ranging from 0.0 to 1.0.
+pass it to this tool's endpoint after completing the survey together with a `custom_grade` parameter ranging from 0.00 to 1.00.
 The latter can be done redirecting to `http://youruniversity.com/qualtrics-lti-bridge/tool/public/index.php?lis_result_sourcedid=${e://Field/lis_result_sourcedid}&custom_grade=1` on survey termination.
 
 ## Setting up the Tool Provider (tool)
@@ -112,11 +112,11 @@ When adding an LTI Item to a coursera lesson, a few things need to be set:
 * The Consumer Secret should match the secret for the key in this tool's configuration.
 * Learner Privacy should optionally be changed such that various extra parameters will be passed to Qualtrics.
 * Outcome Callback should be set to yes if you want grading callbacks.
-* Depending on your tool configuration, at least two custom parameters need to be specified (for example):
+* Depending on your tool configuration, at least the first two custom parameters need to be specified (for example):
 
 1. `custom_qualtrics_url` = `https://youruniversity.qualtrics.com/SE`
 2. `custom_survey_id` = `SV_7U4egQ3f78yO52B`
-3. `custom_return_url` = `https://yourconsumer/return.php`
+3. `custom_return_url` = `https://www.coursera.org/learn/your-fabulous-course/gradedLti/.../qualtrics-lti-bridge-quiz` (Optional, if you want the user to return to the LTI item after completing the Qualtrics survey. Grading callbacks also work without setting this parameter.)
 
 Note that Coursera automatically prepends `custom_` to the parameter name, so make sure to remove it (e.g., use `qualtrics_url` rather than `custom_qualtrics_url`.
 
